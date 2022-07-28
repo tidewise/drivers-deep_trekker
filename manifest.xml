@@ -1,0 +1,17 @@
+<package>
+  <description brief="dummy-brief-desc">
+  dummy-long-desc
+  </description>
+  <author>dummy-author/dummy-email</author>
+  <license>dummy-license</license>
+  <url>dummy-url</url>
+  <logo>dummy-logo-url</logo>
+  <depend package="base/cmake" />
+  <!--
+   To add any dependencies use the depend tag
+  <depend package="dummy-dependency-0" />
+	...
+  <depend package="dummy-dependency-n-1" />
+  <depend package="dummy-dependency-n" />
+  -->
+</package>
