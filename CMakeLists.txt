@@ -1,12 +1,11 @@
-# CMakeLists.txt has to be located in the project folder and cmake has to be
-# executed from 'project/build' with 'cmake ../'.
-cmake_minimum_required(VERSION 3.9)
-project(dummy_project
+cmake_minimum_required(VERSION 3.1)
+project(deep_trekker
         VERSION 0.1
-        DESCRIPTION "dummy-brief-desc")
+        DESCRIPTION "Deep trekker drivers algorithms")
 find_package(Rock)
 
-set(CMAKE_CXX_STANDARD 11)
+# Needed by libdatachannel
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 rock_init()
