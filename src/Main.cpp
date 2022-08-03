@@ -1,10 +1,15 @@
-
-#include "rtc/rtc.hpp"
-#include "json/json.h"
-#include <curlpp/cURLpp.hpp>
-#include <deep_trekker/RustySignalMessageDecoder.hpp>
 #include <future>
 #include <iostream>
+#include <sstream>
+#include "rtc/rtc.hpp"
+#include "json/json.h"
+#include <curlpp/Easy.hpp>
+#include <curlpp/Infos.hpp>
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/Exception.hpp>
+#include <deep_trekker/HttpPostRequestReplyMessageDecoder.hpp>
+#include <deep_trekker/RustySignalMessageDecoder.hpp>
 
 using namespace deep_trekker;
 using namespace std;
@@ -13,15 +18,14 @@ using std::shared_ptr;
 using std::weak_ptr;
 
 template <class T> weak_ptr<T> make_weak_ptr(shared_ptr<T> ptr) { return ptr; }
-void pong(shared_ptr<rtc::WebSocket>& websocket,
-          RustySignalMessageDecoder& decoder,
-          string const& local_peer_id);
-
+void pong(
+    shared_ptr<rtc::WebSocket>& websocket,
+    RustySignalMessageDecoder& decoder,
+    string const& local_peer_id
+);
 shared_ptr<rtc::PeerConnection> peerConnection;
 
-int main(int argc, char** argv)
-try
-{
+int main(int argc, char** argv) try {
     if (argc != 2)
     {
         cout << "usage: " << argv[0] << " local peer id" << endl;
@@ -29,8 +33,32 @@ try
     }
     string local_peer_id = argv[1];
 
-    RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
+    // Http post request
+    curlpp::Cleanup cleaner;
+    curlpp::Easy request;
+    // TODO - put the right localhost
+    string url_https = "https://localhost:5001/sessionHub/negotiate?negotiateVersion=1";
+    request.setOpt(new curlpp::options::Url(url_https));
+    request.setOpt(new curlpp::options::Verbose(true));
+    list<string> header;
+    header.push_back("Content-Type: application/x-www-form-urlencoded");
+    request.setOpt(new curlpp::options::HttpHeader(header));
+    request.setOpt(new curlpp::options::SslVerifyPeer(false));
+    std::ostringstream os;
+	curlpp::options::WriteStream ws(&os);
+	request.setOpt(ws);
+    request.perform();
+    os << request;
+    HttpPostRequestReplyMessageDecoder decoder = HttpPostRequestReplyMessageDecoder();
+    string error;
+    if (!decoder.parseJSONMessage(os.str().c_str(), error))
+    {
+        throw invalid_argument(error);
+    }
+    string https_token = decoder.getConnectionToken();
 
+    // RustySignal websocket
+    RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
     rtc::Configuration config;

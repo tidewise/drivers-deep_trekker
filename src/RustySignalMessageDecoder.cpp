@@ -27,13 +27,13 @@ void RustySignalMessageDecoder::validateFieldPresent(
 
 string RustySignalMessageDecoder::getActionType()
 {
-    RustySignalMessageDecoder::validateFieldPresent(mJData, "action");
+    validateFieldPresent(mJData, "action");
     return mJData["action"].asString();
 }
 
 string RustySignalMessageDecoder::getTo()
 {
-    RustySignalMessageDecoder::validateFieldPresent(mJData, "to");
+    validateFieldPresent(mJData, "to");
     return mJData["to"].asString();
 }
 
