@@ -1,7 +1,11 @@
 
 #include "rtc/rtc.hpp"
 #include "json/json.h"
+#include <curlpp/Easy.hpp>
+#include <curlpp/Exception.hpp>
+#include <curlpp/Options.hpp>
 #include <curlpp/cURLpp.hpp>
+#include <curlpp/Infos.hpp>
 #include <deep_trekker/RustySignalMessageDecoder.hpp>
 #include <future>
 #include <iostream>
@@ -29,8 +33,26 @@ try
     }
     string local_peer_id = argv[1];
 
-    RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
+    // Http post request
+    curlpp::Cleanup cleaner;
+    curlpp::Easy request;
+    // TODO - put the right localhost
+    string url_https = "https://localhost:5001/sessionHub/negotiate?negotiateVersion=1";
+    request.setOpt(new curlpp::options::Url(url_https));
+    request.setOpt(new curlpp::options::Verbose(true));
+    list<string> header;
+    header.push_back("Content-Type: application/x-www-form-urlencoded");
+    request.setOpt(new curlpp::options::HttpHeader(header));
+    request.setOpt(new curlpp::options::SslVerifyPeer(false));
+    request.perform();
+    long https_token = curlpp::infos::ResponseCode::get(request);
+    if (https_token == 0)
+    {
+        throw std::invalid_argument("HTTPS request fails");
+    }
 
+    // RustySignal websocket
+    RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
     rtc::Configuration config;
