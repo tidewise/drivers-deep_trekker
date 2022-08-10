@@ -1,8 +1,10 @@
 rock_library(deep_trekker
-    SOURCES RustySignalMessageDecoder.cpp
+    SOURCES CommandActionMessageParser.cpp
+            RustySignalMessageDecoder.cpp
             SignalRMessageDecoder.cpp
             HttpPostRequestReplyMessageDecoder.cpp
-    HEADERS DeepTrekkerCommands.hpp
+    HEADERS CommandActionMessageParser.hpp
+            DeepTrekkerCommands.hpp
             DeepTrekkerStates.hpp
             RustySignalMessageDecoder.hpp
             SignalRMessageDecoder.hpp
