@@ -26,8 +26,19 @@ void pong(
 );
 void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket);
 void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_id);
-void joinSession(shared_ptr<rtc::WebSocket>& websocket, SignalRMessageDecoder& decoder, string& local_peer_id);
-shared_ptr<rtc::PeerConnection> peerConnection;
+void joinSession(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id
+);
+void offerAnswerMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    RustySignalMessageDecoder& decoder
+);
+void candidateMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    RustySignalMessageDecoder& decoder
+);
 
 int main(int argc, char** argv)
 try
@@ -42,7 +53,8 @@ try
     // Http post request
     curlpp::Cleanup cleaner;
     curlpp::Easy request;
-    string url_https = "https://" + local_peer_id + ":5001/sessionHub/negotiate?negotiateVersion=1";
+    string url_https =
+        "https://" + local_peer_id + ":5001/sessionHub/negotiate?negotiateVersion=1";
     request.setOpt(new curlpp::options::Url(url_https));
     request.setOpt(new curlpp::options::Verbose(true));
     list<string> header;
@@ -62,14 +74,18 @@ try
     }
     string https_token = decoder.getConnectionToken();
 
-    // SignalR websocket
     SignalRMessageDecoder signalr_decoder = SignalRMessageDecoder();
     promise<void> wsr_promise;
     future<void> wsr_future = wsr_promise.get_future();
     rtc::Configuration signalr_config;
     // TODO - make it configurable
     signalr_config.iceServers.emplace_back("stun:stun.l.google.com:19302");
+
+    // SignalR websocket
     auto signalr_websocket = make_shared<rtc::WebSocket>();
+    // RustySignal websocket
+    auto rusty_websocket = make_shared<rtc::WebSocket>();
+
     bool empty_json_received = false;
     bool session_list_checked = false;
     bool client_id_checked = false;
@@ -106,7 +122,7 @@ try
                 throw invalid_argument(error);
             }
 
-            if(signalr_decoder.isEmpty() && !empty_json_received)
+            if (signalr_decoder.isEmpty() && !empty_json_received)
             {
                 empty_json_received = true;
                 sendSessionCheck(signalr_websocket, local_peer_id);
@@ -132,19 +148,18 @@ try
     );
 
     // wss://localhost:5001/sessionHub?id=+connectionToken
-    const string signalr_url_websocket = local_peer_id + ":5001/sessionHub?id=" + https_token;
+    const string signalr_url_websocket =
+        local_peer_id + ":5001/sessionHub?id=" + https_token;
     cout << "SignalR WebSocket URL is " << signalr_url_websocket << endl;
     signalr_websocket->open(signalr_url_websocket);
     sendInitialPayload(signalr_websocket);
 
-    // RustySignal websocket
     RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
     rtc::Configuration rusty_config;
     // TODO - make it configurable
     rusty_config.iceServers.emplace_back("stun:stun.l.google.com:19302");
-    auto rusty_websocket = make_shared<rtc::WebSocket>();
 
     rusty_websocket->onOpen(
         [&]()
@@ -185,7 +200,17 @@ try
                 pong(rusty_websocket, rusty_decoder, local_peer_id);
             }
 
-           // TODO - init negotiation parser
+            if (signalr_websocket)
+            {
+                if (actiontype == "offer" || actiontype == "answer")
+                {
+                    offerAnswerMessageParser(signalr_websocket, rusty_decoder);
+                }
+                else if (actiontype == "candidate")
+                {
+                    candidateMessageParser(signalr_websocket, rusty_decoder);
+                }
+            }
         }
     );
 
@@ -229,7 +254,11 @@ void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_
     }
 }
 
-void joinSession(shared_ptr<rtc::WebSocket>& websocket, SignalRMessageDecoder& decoder, string& local_peer_id)
+void joinSession(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id
+)
 {
     Json::Value message, content(Json::arrayValue);
     content.append(local_peer_id);
@@ -257,6 +286,38 @@ void pong(
     message["to"] = decoder.getFrom();
     message["action"] = "pong";
     message["data"]["from"] = local_peer_id;
+    Json::FastWriter fast;
+    if (auto ws = make_weak_ptr(websocket).lock())
+    {
+        ws->send(fast.write(message));
+    }
+}
+
+void offerAnswerMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    RustySignalMessageDecoder& decoder
+)
+{
+    Json::Value message;
+    message["target"] = decoder.getTo();
+    message["caller"] = decoder.getFrom();
+    message["sdp_message"]["type"] = decoder.getActionType();
+    message["sdp_message"]["sdp"] = decoder.getDescription();
+    Json::FastWriter fast;
+    if (auto ws = make_weak_ptr(websocket).lock())
+    {
+        ws->send(fast.write(message));
+    }
+}
+
+void candidateMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    RustySignalMessageDecoder& decoder
+)
+{
+    Json::Value message;
+    message["target"] = decoder.getTo();
+    message["candidate"] = decoder.getCandidate();
     Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {

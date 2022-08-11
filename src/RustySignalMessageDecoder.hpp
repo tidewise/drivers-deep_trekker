@@ -19,7 +19,6 @@ namespace deep_trekker
         std::string getFrom();
         std::string getDescription();
         std::string getCandidate();
-        std::string getMid();
         bool parseJSONMessage(char const* data, std::string& errors);
         void validateFieldPresent(Json::Value const& value, std::string const& fieldName);
 

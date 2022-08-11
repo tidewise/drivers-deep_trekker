@@ -57,10 +57,3 @@ string RustySignalMessageDecoder::getCandidate()
     validateFieldPresent(mJData["data"], "candidate");
     return mJData["data"]["candidate"].asString();
 }
-
-string RustySignalMessageDecoder::getMid()
-{
-    validateFieldPresent(mJData, "data");
-    validateFieldPresent(mJData["data"], "mid");
-    return mJData["data"]["mid"].asString();
-}
