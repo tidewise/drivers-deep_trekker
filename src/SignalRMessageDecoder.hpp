@@ -19,9 +19,10 @@ namespace deep_trekker
         std::string getFrom();
         std::string getDescription();
         std::string getCandidate();
-        std::string getMid();
         std::string getSessionIdFromList();
         std::string getClientId();
+        bool checkSdpMessage();
+        bool checkCandidadeMessage();
         bool isEmpty();
         bool checkSessionList();
         bool parseJSONMessage(char const* data, std::string& errors);

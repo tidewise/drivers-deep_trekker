@@ -30,6 +30,16 @@ bool SignalRMessageDecoder::isEmpty()
     return mJData.empty();
 }
 
+bool SignalRMessageDecoder::checkSdpMessage()
+{
+    return mJData.isMember("sdp_message");
+}
+
+bool SignalRMessageDecoder::checkCandidadeMessage()
+{
+    return mJData.isMember("candidate");
+}
+
 bool SignalRMessageDecoder::checkSessionList()
 {
      return mJData[0].isMember("session_id");
@@ -47,44 +57,34 @@ string SignalRMessageDecoder::getSessionIdFromList()
     return mJData[0]["session_id"].asString();
 }
 
-
-
 string SignalRMessageDecoder::getActionType()
 {
-    validateFieldPresent(mJData, "action");
-    return mJData["action"].asString();
+    validateFieldPresent(mJData, "sdp_message");
+    validateFieldPresent(mJData, "type");
+    return mJData["type"].asString();
 }
 
 string SignalRMessageDecoder::getTo()
 {
-    validateFieldPresent(mJData, "to");
-    return mJData["to"].asString();
+    validateFieldPresent(mJData, "target");
+    return mJData["target"].asString();
 }
 
 string SignalRMessageDecoder::getFrom()
 {
-    validateFieldPresent(mJData, "data");
-    validateFieldPresent(mJData["data"], "from");
-    return mJData["data"]["from"].asString();
+    validateFieldPresent(mJData, "caller");
+    return mJData["caller"].asString();
 }
 
 string SignalRMessageDecoder::getDescription()
 {
-    validateFieldPresent(mJData, "data");
-    validateFieldPresent(mJData["data"], "description");
-    return mJData["data"]["description"].asString();
+    validateFieldPresent(mJData, "sdp_message");
+    validateFieldPresent(mJData, "type");
+    return mJData["sdp"].asString();
 }
 
 string SignalRMessageDecoder::getCandidate()
 {
-    validateFieldPresent(mJData, "data");
-    validateFieldPresent(mJData["data"], "candidate");
-    return mJData["data"]["candidate"].asString();
-}
-
-string SignalRMessageDecoder::getMid()
-{
-    validateFieldPresent(mJData, "data");
-    validateFieldPresent(mJData["data"], "mid");
-    return mJData["data"]["mid"].asString();
+    validateFieldPresent(mJData, "candidate");
+    return mJData["candidate"].asString();
 }

@@ -31,13 +31,21 @@ void joinSession(
     SignalRMessageDecoder& decoder,
     string& local_peer_id
 );
-void offerAnswerMessageParser(
+void offerAnswerRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
     RustySignalMessageDecoder& decoder
 );
-void candidateMessageParser(
+void candidateRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
     RustySignalMessageDecoder& decoder
+);
+void offerAnswerSignalMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder
+);
+void candidateSignalMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder
 );
 
 int main(int argc, char** argv)
@@ -142,8 +150,32 @@ try
                 return;
             }
 
-            // TODO - init negotiation parser
-
+            // workaround, since there is no unique action type field for everyone
+            string actiontype;
+            if (signalr_decoder.checkSdpMessage())
+            {
+                actiontype = signalr_decoder.getActionType();
+            }
+            else if (signalr_decoder.checkCandidadeMessage())
+            {
+                actiontype = "candidate";
+            }
+            else
+            {
+                return;
+            }
+            
+            if (rusty_websocket)
+            {
+                if (actiontype == "offer" || actiontype == "answer")
+                {
+                    offerAnswerSignalMessageParser(rusty_websocket, signalr_decoder);
+                }
+                else if (actiontype == "candidate")
+                {
+                    candidateSignalMessageParser(rusty_websocket, signalr_decoder);
+                }
+            }
         }
     );
 
@@ -204,11 +236,11 @@ try
             {
                 if (actiontype == "offer" || actiontype == "answer")
                 {
-                    offerAnswerMessageParser(signalr_websocket, rusty_decoder);
+                    offerAnswerRustyMessageParser(signalr_websocket, rusty_decoder);
                 }
                 else if (actiontype == "candidate")
                 {
-                    candidateMessageParser(signalr_websocket, rusty_decoder);
+                    candidateRustyMessageParser(signalr_websocket, rusty_decoder);
                 }
             }
         }
@@ -231,9 +263,9 @@ void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket)
     Json::Value message;
     message["protocol"] = "json";
     message["version"] = "1";
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
@@ -247,9 +279,9 @@ void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_
     message["streamIds"] = Json::arrayValue;
     message["target"] = "session_check";
     message["type"] = 1;
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
@@ -268,9 +300,9 @@ void joinSession(
     message["streamIds"] = Json::arrayValue;
     message["target"] = "join_session";
     message["type"] = 1;
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
@@ -286,14 +318,14 @@ void pong(
     message["to"] = decoder.getFrom();
     message["action"] = "pong";
     message["data"]["from"] = local_peer_id;
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
 
-void offerAnswerMessageParser(
+void offerAnswerRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
     RustySignalMessageDecoder& decoder
 )
@@ -303,14 +335,14 @@ void offerAnswerMessageParser(
     message["caller"] = decoder.getFrom();
     message["sdp_message"]["type"] = decoder.getActionType();
     message["sdp_message"]["sdp"] = decoder.getDescription();
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
 
-void candidateMessageParser(
+void candidateRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
     RustySignalMessageDecoder& decoder
 )
@@ -318,9 +350,46 @@ void candidateMessageParser(
     Json::Value message;
     message["target"] = decoder.getTo();
     message["candidate"] = decoder.getCandidate();
-    Json::FastWriter fast;
     if (auto ws = make_weak_ptr(websocket).lock())
     {
+        Json::FastWriter fast;
+        ws->send(fast.write(message));
+    }
+}
+
+void offerAnswerSignalMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder
+)
+{
+    Json::Value message;
+    message["protocol"] = "one-to-one";
+    message["to"] = decoder.getTo();
+    message["action"] = decoder.getActionType();
+    message["data"]["from"] = decoder.getFrom();
+    message["data"]["description"] = decoder.getDescription();
+
+    if (auto ws = make_weak_ptr(websocket).lock())
+    {
+        Json::FastWriter fast;
+        ws->send(fast.write(message));
+    }
+}
+
+void candidateSignalMessageParser(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder
+)
+{
+    Json::Value message;
+    message["protocol"] = "one-to-one";
+    message["to"] = decoder.getTo();
+    message["action"] = decoder.getActionType();
+    message["data"]["from"] = decoder.getFrom();
+    message["data"]["candidate"] = decoder.getDescription();
+    if (auto ws = make_weak_ptr(websocket).lock())
+    {
+        Json::FastWriter fast;
         ws->send(fast.write(message));
     }
 }
