@@ -31,6 +31,11 @@ void joinSession(
     SignalRMessageDecoder& decoder,
     string& local_peer_id
 );
+void leaveSession(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id
+);
 bool initialHandShakeFinalized(
     shared_ptr<rtc::WebSocket>& websocket,
     SignalRMessageDecoder& decoder,
@@ -160,7 +165,7 @@ try
                 return;
             }
 
-            // Sdp negotiation
+            // Sdp negotiation parser
             if (rusty_websocket)
             {
                 if (actiontype == "offer" || actiontype == "answer")
@@ -247,11 +252,35 @@ try
     cout << "RustySignal WebSocket URL is " << rusty_url_websocket << endl;
     rusty_websocket->open(rusty_url_websocket);
 
+    while(true)
+    {
+        string leave_session;
+		cout << "Enter with \"leave_session\" to disconnect:" << endl;
+		cin >> leave_session;
+		cin.ignore();
+
+        if (signalr_decoder.checkSessionClosed())
+        {
+            cout << "Session closed: Vehicle server disconnected" <<endl;
+            break;
+        }
+
+        if (leave_session != "leave_session") {
+			cout << "Invalid argument: \"leave_session\" to disconnect" << endl;
+		}
+        else
+        {
+            leaveSession(signalr_websocket, signalr_decoder, local_peer_id);
+            break;
+        }
+    }
+
     return 0;
 }
 catch (exception const& error)
 {
     cout << "Error:" << error.what() << endl;
+    return -1;
 }
 
 void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket)
@@ -295,6 +324,27 @@ void joinSession(
     message["invocationId"] = "0";
     message["streamIds"] = Json::arrayValue;
     message["target"] = "join_session";
+    message["type"] = 1;
+    if (auto ws = make_weak_ptr(websocket).lock())
+    {
+        Json::FastWriter fast;
+        ws->send(fast.write(message));
+    }
+}
+
+void leaveSession(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id
+)
+{
+    Json::Value message, content(Json::arrayValue);
+    content.append(local_peer_id);
+    content.append(decoder.getSessionIdFromList());
+    message["arguments"] = content;
+    message["invocationId"] = "0";
+    message["streamIds"] = Json::arrayValue;
+    message["target"] = "leave_session";
     message["type"] = 1;
     if (auto ws = make_weak_ptr(websocket).lock())
     {

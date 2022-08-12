@@ -22,6 +22,7 @@ namespace deep_trekker
         std::string getSessionIdFromList();
         std::string getClientId();
         bool checkSdpMessage();
+        bool checkSessionClosed();
         bool checkCandidadeMessage();
         bool isEmpty();
         bool checkSessionList();

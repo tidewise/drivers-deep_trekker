@@ -40,6 +40,11 @@ bool SignalRMessageDecoder::checkCandidadeMessage()
     return mJData.isMember("candidate");
 }
 
+bool SignalRMessageDecoder::checkSessionClosed()
+{
+    return mJData["target"].isMember("session_closed");
+}
+
 bool SignalRMessageDecoder::checkSessionList()
 {
      return mJData[0].isMember("session_id");
