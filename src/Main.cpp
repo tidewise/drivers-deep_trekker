@@ -1,6 +1,3 @@
-#include <future>
-#include <sstream>
-#include <iostream>
 #include "rtc/rtc.hpp"
 #include "json/json.h"
 #include <curlpp/Easy.hpp>
@@ -11,6 +8,9 @@
 #include <deep_trekker/HttpPostRequestReplyMessageDecoder.hpp>
 #include <deep_trekker/RustySignalMessageDecoder.hpp>
 #include <deep_trekker/SignalRMessageDecoder.hpp>
+#include <future>
+#include <iostream>
+#include <sstream>
 
 using namespace deep_trekker;
 using namespace std;
@@ -30,6 +30,12 @@ void joinSession(
     shared_ptr<rtc::WebSocket>& websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id
+);
+bool initialHandShakeFinalized(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id,
+    bool& client_id_checked
 );
 void offerAnswerRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
@@ -94,8 +100,6 @@ try
     // RustySignal websocket
     auto rusty_websocket = make_shared<rtc::WebSocket>();
 
-    bool empty_json_received = false;
-    bool session_list_checked = false;
     bool client_id_checked = false;
 
     signalr_websocket->onOpen(
@@ -130,23 +134,14 @@ try
                 throw invalid_argument(error);
             }
 
-            if (signalr_decoder.isEmpty() && !empty_json_received)
+            // initial Handshake
+            if (!initialHandShakeFinalized(
+                    signalr_websocket,
+                    signalr_decoder,
+                    local_peer_id,
+                    client_id_checked
+                ))
             {
-                empty_json_received = true;
-                sendSessionCheck(signalr_websocket, local_peer_id);
-                return;
-            }
-
-            if (signalr_decoder.checkSessionList() && !session_list_checked)
-            {
-                session_list_checked = true;
-                joinSession(signalr_websocket, signalr_decoder, local_peer_id);
-                return;
-            }
-
-            if (signalr_decoder.getClientId() == local_peer_id && !client_id_checked)
-            {
-                client_id_checked = true;
                 return;
             }
 
@@ -164,7 +159,8 @@ try
             {
                 return;
             }
-            
+
+            // Sdp negotiation
             if (rusty_websocket)
             {
                 if (actiontype == "offer" || actiontype == "answer")
@@ -392,4 +388,30 @@ void candidateSignalMessageParser(
         Json::FastWriter fast;
         ws->send(fast.write(message));
     }
+}
+
+bool initialHandShakeFinalized(
+    shared_ptr<rtc::WebSocket>& websocket,
+    SignalRMessageDecoder& decoder,
+    string& local_peer_id,
+    bool& client_id_checked
+)
+{
+    if (decoder.isEmpty())
+    {
+        sendSessionCheck(websocket, local_peer_id);
+        return false;
+    }
+    else if (decoder.checkSessionList())
+    {
+        joinSession(websocket, decoder, local_peer_id);
+        return false;
+    }
+    else if (decoder.getClientId() == local_peer_id)
+    {
+        client_id_checked = true;
+        return true;
+    }
+
+    return false;
 }
