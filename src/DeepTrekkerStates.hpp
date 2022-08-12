@@ -87,12 +87,6 @@ namespace deep_trekker
         MotorDiagnostics motor_2;
     };
 
-    struct Reels
-    {
-        PoweredReel powered_reel;
-        ManualReel manual_reel;
-    };
-
     /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
@@ -132,17 +126,19 @@ namespace deep_trekker
         MotorDiagnostics grabber_motor_diagnostic;
     };
 
+    struct Laser
+    {
+        bool enable_laser;
+    };
+
     /**
      *  light:
      *   - min: 0
      *   - max: 100
      */
-    struct Peripherals
+    struct Light
     {
-        bool laser_vehicle;
-        double light_vehicle;
-        Grabber grabber;
-        TiltCameraHead tilt_camera_head;
+        double enable_light;
     };
 
     /** Command and state in local frame */
@@ -154,17 +150,17 @@ namespace deep_trekker
 
     struct Revolution
     {
-       base::Time usage_time;
-       RovControl vehicle_control;
-       Peripherals peripherals;
-       Battery left_battery;
-       Battery right_battery;
-       MotorDiagnostics front_left_motor;
-       MotorDiagnostics front_right_motor;
-       MotorDiagnostics rear_left_motor;
-       MotorDiagnostics rear_right_motor;
-       MotorDiagnostics vertical_left_motor;
-       MotorDiagnostics vertical_right_motor;
+        base::Time usage_time;
+        RovControl vehicle_control;
+        Battery left_battery;
+        Battery right_battery;
+        MotorDiagnostics front_left_motor;
+        MotorDiagnostics front_right_motor;
+        MotorDiagnostics rear_left_motor;
+        MotorDiagnostics rear_right_motor;
+        MotorDiagnostics vertical_left_motor;
+        MotorDiagnostics vertical_right_motor;
+
     };
 
 } // namespace deep_trekker

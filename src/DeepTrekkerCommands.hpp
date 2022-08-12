@@ -84,16 +84,6 @@ namespace deep_trekker
         base::samples::RigidBodyState vehicle_setpoint;
     };
 
-    enum RoVCommandAction
-    {
-        CAMERA_HEAD_COMMAND,
-        ZOOM_CAMERA_COMMAND,
-        GRABBER_COMMAND,
-        LASER_COMMAND,
-        LIGHT_COMMAND,
-        ROV_SETPOINT_COMMAND
-    };
-
 } // namespace deep_trekker
 
 #endif
