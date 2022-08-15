@@ -8,6 +8,15 @@
 namespace deep_trekker
 {
 
+    struct DevicesMacAdress
+    {
+        std::string revolution;
+        std::string camera_head;
+        std::string manual_reel;
+        std::string powered_reel;
+        std::string camera;
+    };
+
     struct Battery
     {
         bool charging;
@@ -77,7 +86,6 @@ namespace deep_trekker
         bool reel_reverse;
         bool estop_enabled;
         bool ac_power_connected;
-        bool hibrid_power_enabled;
         double tether_distance;
         double cpu_temperature;
         double speed;
@@ -144,8 +152,8 @@ namespace deep_trekker
     /** Command and state in local frame */
     struct RovControl
     {
-        base::samples::RigidBodyState vehicle_setpoint;
-        base::samples::RigidBodyState state_estimator;
+        base::samples::Joints vehicle_setpoint;
+        base::samples::Joints state_estimator;
     };
 
     struct Revolution
@@ -160,7 +168,16 @@ namespace deep_trekker
         MotorDiagnostics rear_right_motor;
         MotorDiagnostics vertical_left_motor;
         MotorDiagnostics vertical_right_motor;
+    };
 
+    struct DevicesInfo
+    {
+        Revolution revolution;
+        Light light;
+        Laser laser;
+        Grabber grabber;
+        TiltCameraHead camera_head;
+        TamronHarrierZoomCamera camera;
     };
 
 } // namespace deep_trekker

@@ -79,9 +79,19 @@ namespace deep_trekker
     };
 
     /** Command in local frame */
-    struct RovControlCommand
+    struct RevolutionControlCommand
     {
         base::samples::RigidBodyState vehicle_setpoint;
+    };
+
+    enum DevicesCommandAction
+    {
+        RevolutionCommandAction,
+        LightCommandAction,
+        LaserCommandAction,
+        GrabberCommandAction,
+        TiltCameraHeadCommandAction,
+        ZoomCameraCommandAction
     };
 
 } // namespace deep_trekker
