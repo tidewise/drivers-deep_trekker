@@ -20,8 +20,8 @@ namespace deep_trekker
      */
     struct TiltCameraHeadCommand
     {
-        bool laser_camera;
-        double light_camera;
+        bool laser;
+        double light;
         base::samples::Joints tilt;
     };
 
@@ -62,36 +62,32 @@ namespace deep_trekker
         base::samples::Joints rotate;
     };
 
-
-    struct LaserCommand
-    {
-        bool enable_laser;
-    };
-
     /**
-     *  light:
+     *  -light:
      *   - min: 0
      *   - max: 100
+     *  -Command in local frame
      */
-    struct LightCommand
-    {
-        double enable_light;
-    };
-
-    /** Command in local frame */
     struct RevolutionControlCommand
     {
+        double light;
+        GrabberCommand grabber;
+        TiltCameraHeadCommand camera_head;
+        // TODO - camera
         base::samples::RigidBodyState vehicle_setpoint;
+    };
+
+    struct PoweredReelControlCommand
+    {
+        bool reel_forward;
+        bool reel_reverse;
+        base::samples::Joints speed;
     };
 
     enum DevicesCommandAction
     {
         RevolutionCommandAction,
-        LightCommandAction,
-        LaserCommandAction,
-        GrabberCommandAction,
-        TiltCameraHeadCommandAction,
-        ZoomCameraCommandAction
+        PoweredReelCommandAction
     };
 
 } // namespace deep_trekker

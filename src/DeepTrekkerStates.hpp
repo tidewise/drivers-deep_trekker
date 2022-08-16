@@ -8,13 +8,11 @@
 namespace deep_trekker
 {
 
-    struct DevicesMacAdress
+    struct DevicesMacAddress
     {
         std::string revolution;
-        std::string camera_head;
         std::string manual_reel;
         std::string powered_reel;
-        std::string camera;
     };
 
     struct Battery
@@ -52,9 +50,9 @@ namespace deep_trekker
      */
     struct TiltCameraHead
     {
-        bool laser_camera;
-        double light_camera;
-        base::samples::Joints tilt;
+        bool laser;
+        double light;
+        base::samples::Joints tilt_command;
         MotorDiagnostics tilt_motor_diagnostics;
     };
 
@@ -88,7 +86,7 @@ namespace deep_trekker
         bool ac_power_connected;
         double tether_distance;
         double cpu_temperature;
-        double speed;
+        base::samples::Joints speed;
         Battery battery_1;
         Battery battery_2;
         MotorDiagnostics motor_1;
@@ -130,13 +128,15 @@ namespace deep_trekker
     struct Grabber
     {
         double open;
-        base::samples::Joints rotate;
-        MotorDiagnostics grabber_motor_diagnostic;
+        base::samples::Joints rotate_command;
+        MotorDiagnostics motor_diagnostic;
     };
 
-    struct Laser
+    /** Command and state in local frame */
+    struct RovControl
     {
-        bool enable_laser;
+        base::samples::RigidBodyState vehicle_setpoint;
+        base::samples::RigidBodyState state_estimator;
     };
 
     /**
@@ -144,24 +144,16 @@ namespace deep_trekker
      *   - min: 0
      *   - max: 100
      */
-    struct Light
-    {
-        double enable_light;
-    };
-
-    /** Command and state in local frame */
-    struct RovControl
-    {
-        base::samples::Joints vehicle_setpoint;
-        base::samples::Joints state_estimator;
-    };
-
     struct Revolution
     {
+        double light;
         base::Time usage_time;
         RovControl vehicle_control;
         Battery left_battery;
         Battery right_battery;
+        Grabber grabber;
+        TiltCameraHead camera_head;
+        // TODO - camera
         MotorDiagnostics front_left_motor;
         MotorDiagnostics front_right_motor;
         MotorDiagnostics rear_left_motor;
@@ -173,11 +165,8 @@ namespace deep_trekker
     struct DevicesInfo
     {
         Revolution revolution;
-        Light light;
-        Laser laser;
-        Grabber grabber;
-        TiltCameraHead camera_head;
-        TamronHarrierZoomCamera camera;
+        ManualReel manual_reel;
+        PoweredReel powered_reel;
     };
 
 } // namespace deep_trekker
