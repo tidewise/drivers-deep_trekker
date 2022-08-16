@@ -30,6 +30,11 @@ namespace deep_trekker
         Battery getBatteryInfo(std::string address, std::string battery_side);
         MotorDiagnostics getMotorInfo(std::string address, std::string motor_side);
         double getLightInfo(std::string address);
+        double getTemperatureInfo(std::string address);
+        double getTetherDistanceInfo(std::string address);
+        bool getCalibrateInfo(std::string address);
+        bool getReadyInfo(std::string address);
+        bool getLeakInfo(std::string address);
         bool checkDeviceMacAddress(std::string address);
         bool parseJSONMessage(char const* data, std::string& errors);
         void validateFieldPresent(Json::Value const& value, std::string const& fieldName);

@@ -141,3 +141,28 @@ double CommandAndStateMessageParser::getLightInfo(string address)
 {   
     return mJData["devices"][address]["auxLights"].asDouble();
 }
+
+double CommandAndStateMessageParser::getTetherDistanceInfo(string address)
+{
+    return mJData["devices"][address]["distance"].asDouble();
+}
+
+double CommandAndStateMessageParser::getTemperatureInfo(string address)
+{
+    return mJData["devices"][address]["cpuTemp"].asDouble();
+}
+
+bool CommandAndStateMessageParser::getCalibrateInfo(string address)
+{
+    return mJData["devices"][address]["calibrator"].asBool();
+}
+
+bool CommandAndStateMessageParser::getReadyInfo(string address)
+{
+    return mJData["devices"][address]["ready"].asBool();
+}
+
+bool CommandAndStateMessageParser::getLeakInfo(string address)
+{
+    return mJData["devices"][address]["leak"].asBool();
+}
