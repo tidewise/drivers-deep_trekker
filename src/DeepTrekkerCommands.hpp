@@ -1,8 +1,8 @@
 #ifndef _DEEP_TREKKER_COMMANDS_HPP_
 #define _DEEP_TREKKER_COMMANDS_HPP_
 
-#include <base/samples/RigidBodyState.hpp>
 #include <base/samples/Joints.hpp>
+#include <base/samples/RigidBodyState.hpp>
 
 namespace deep_trekker
 {

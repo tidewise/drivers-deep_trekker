@@ -1,14 +1,14 @@
 #ifndef _COMMAND_AND_STATE_MESSAGE_PARSER_HPP_
 #define _COMMAND_AND_STATE_MESSAGE_PARSER_HPP_
 
+#include "deep_trekker/DeepTrekkerCommands.hpp"
+#include "deep_trekker/DeepTrekkerStates.hpp"
 #include "stdio.h"
 #include "string.h"
 #include "json/json.h"
-#include <memory>
 #include <base/Eigen.hpp>
 #include <base/Time.hpp>
-#include "deep_trekker/DeepTrekkerStates.hpp"
-#include "deep_trekker/DeepTrekkerCommands.hpp"
+#include <memory>
 
 namespace deep_trekker
 {
