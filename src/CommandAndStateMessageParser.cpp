@@ -157,6 +157,25 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadInfo(string address)
         mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["rpm"].asFloat()
     );
     motor.motor = samples::Joints::Raw(vector_motor);
+    camera_head.tilt_motor_diagnostics = motor;
+    camera_head.camera.brightness =
+        mJData["devices"][address]["cameraHead"]["camera"]["brightness"].asDouble();
+    camera_head.camera.exposure =
+        mJData["devices"][address]["cameraHead"]["camera"]["exposure"]["value"].asDouble(
+        );
+    camera_head.camera.focus =
+        mJData["devices"][address]["cameraHead"]["camera"]["focus"]["value"].asDouble();
+    camera_head.camera.saturation =
+        mJData["devices"][address]["cameraHead"]["camera"]["saturation"].asDouble();
+    camera_head.camera.sharpness =
+        mJData["devices"][address]["cameraHead"]["camera"]["sharpness"].asDouble();
+    camera_head.camera.zoom.ratio =
+        mJData["devices"][address]["cameraHead"]["camera"]["zoom"]["ratio"].asDouble();
+    vector<float> vector_speed;
+    vector_speed.push_back(
+        mJData["devices"][address]["cameraHead"]["camera"]["zoom"]["speed"].asFloat()
+    );
+    camera_head.camera.zoom.speed = samples::Joints::Speeds(vector_speed);
 
     return camera_head;
 }

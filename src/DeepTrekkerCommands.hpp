@@ -8,24 +8,6 @@ namespace deep_trekker
 {
 
     /**
-     *  light:
-     *   - min: 0
-     *   - max: 100
-     *  position (joint):
-     *   - min: -180
-     *   - max: +180
-     *  velocity (joint):
-     *   - min: -100
-     *   - max: +100
-     */
-    struct TiltCameraHeadCommand
-    {
-        bool laser;
-        double light;
-        base::samples::Joints tilt;
-    };
-
-    /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
      *  speed (joint):
@@ -56,6 +38,25 @@ namespace deep_trekker
         ZoomControlCommand zoom;
     };
 
+    /**
+     *  light:
+     *   - min: 0
+     *   - max: 100
+     *  position (joint):
+     *   - min: -180
+     *   - max: +180
+     *  velocity (joint):
+     *   - min: -100
+     *   - max: +100
+     */
+    struct TiltCameraHeadCommand
+    {
+        bool laser;
+        double light;
+        base::samples::Joints tilt;
+        TamronHarrierZoomCameraCommand camera;
+    };
+
     struct GrabberCommand
     {
         double open;
@@ -73,7 +74,6 @@ namespace deep_trekker
         double light;
         GrabberCommand grabber;
         TiltCameraHeadCommand camera_head;
-        // TODO - camera
         base::samples::RigidBodyState vehicle_setpoint;
     };
 

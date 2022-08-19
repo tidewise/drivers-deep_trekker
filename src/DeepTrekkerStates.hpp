@@ -38,6 +38,37 @@ namespace deep_trekker
     };
 
     /**
+     *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
+     *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
+     *  speed (joint):
+     *   - min: -100 (revert/retract)
+     *   - max: +100 (forward)
+     */
+    struct ZoomControl
+    {
+        double ratio;
+        base::samples::Joints speed;
+    };
+
+    /**
+     *  brightness/focus/saturation/sharpness:
+     *   - min: 0
+     *   - max 100
+     *  exposure:
+     *   - min: 0
+     *   - max: 15
+     */
+    struct TamronHarrierZoomCamera
+    {
+        double exposure;
+        double brightness;
+        double focus;
+        double saturation;
+        double sharpness;
+        ZoomControl zoom;
+    };
+
+    /**
      *  light:
      *   - min: 0
      *   - max: 100
@@ -54,6 +85,7 @@ namespace deep_trekker
         double light;
         base::samples::Joints tilt_command;
         MotorDiagnostics tilt_motor_diagnostics;
+        TamronHarrierZoomCamera camera;
     };
 
     /**
@@ -91,38 +123,6 @@ namespace deep_trekker
         MotorDiagnostics motor_2;
     };
 
-    /**
-     *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
-     *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
-     *  speed (joint):
-     *   - min: -100 (revert/retract)
-     *   - max: +100 (forward)
-     */
-    struct ZoomControl
-    {
-        double ratio;
-        base::samples::Joints speed;
-    };
-
-    /**
-     *  brightness/focus/saturation/sharpness:
-     *   - min: 0
-     *   - max 100
-     *  exposure:
-     *   - min: 0
-     *   - max: 15
-     */
-    struct TamronHarrierZoomCamera
-    {
-        bool ready;
-        double exposure;
-        double brightness;
-        double focus;
-        double saturation;
-        double sharpness;
-        ZoomControl zoom;
-    };
-
     struct Grabber
     {
         double open;
@@ -151,7 +151,6 @@ namespace deep_trekker
         Battery right_battery;
         Grabber grabber;
         TiltCameraHead camera_head;
-        // TODO - camera
         MotorDiagnostics front_left_motor;
         MotorDiagnostics front_right_motor;
         MotorDiagnostics rear_left_motor;
