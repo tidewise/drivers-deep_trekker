@@ -80,8 +80,6 @@ namespace deep_trekker
         bool calibrated;
         bool leak;
         bool ready;
-        bool reel_forward;
-        bool reel_reverse;
         bool estop_enabled;
         bool ac_power_connected;
         double tether_distance;
