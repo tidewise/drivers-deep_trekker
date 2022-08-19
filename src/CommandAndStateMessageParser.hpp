@@ -18,10 +18,6 @@ namespace deep_trekker
       public:
         CommandAndStateMessageParser();
 
-        std::string parseTiltCameraHeadCommand();
-        std::string parseZommCameraCommand();
-        std::string parseGrabberCommand();
-        std::string parseLaserCommand();
         std::string parseGetMessage();
         base::Time getTimeUsage(std::string address);
         RovControl getVehicleStates(std::string address);

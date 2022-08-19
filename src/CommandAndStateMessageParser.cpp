@@ -41,16 +41,6 @@ string CommandAndStateMessageParser::parseGetMessage()
     return message.asString();
 }
 
-string CommandAndStateMessageParser::parseTiltCameraHeadCommand()
-{
-    Json::Value message;
-    message["apiVersion"] = "0.8.3";
-    message["method"] = "SET";
-    message["payload"]["devices"]["model"] = 102;
-    message["payload"]["devices"]["ready"] = true;
-
-    return message.asString();
-}
 
 Time CommandAndStateMessageParser::getTimeUsage(string address)
 {
