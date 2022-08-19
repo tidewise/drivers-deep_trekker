@@ -200,3 +200,20 @@ bool CommandAndStateMessageParser::getLeakInfo(string address)
 {
     return mJData["devices"][address]["leak"].asBool();
 }
+
+bool CommandAndStateMessageParser::getACPowerInfo(string address)
+{
+    return mJData["devices"][address]["acConnected"].asBool();
+}
+
+bool CommandAndStateMessageParser::getEStopInfo(string address)
+{
+    return mJData["devices"][address]["eStop"].asBool();
+}
+
+samples::Joints CommandAndStateMessageParser::getSpeedInfo(string address)
+{
+    vector<float> vector_speed;
+    vector_speed.push_back(mJData["devices"][address]["speed"].asFloat());
+    return samples::Joints::Speeds(vector_speed);
+}

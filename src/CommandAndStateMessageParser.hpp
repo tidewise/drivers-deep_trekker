@@ -29,9 +29,12 @@ namespace deep_trekker
         TiltCameraHead getCameraHeadInfo(std::string address);
         Battery getBatteryInfo(std::string address, std::string battery_side);
         MotorDiagnostics getMotorInfo(std::string address, std::string motor_side);
+        base::samples::Joints getSpeedInfo(std::string address);
         double getLightInfo(std::string address);
         double getTemperatureInfo(std::string address);
         double getTetherDistanceInfo(std::string address);
+        bool getACPowerInfo(std::string address);
+        bool getEStopInfo(std::string address);
         bool getCalibrateInfo(std::string address);
         bool getReadyInfo(std::string address);
         bool getLeakInfo(std::string address);
