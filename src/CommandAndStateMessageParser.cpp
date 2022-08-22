@@ -31,10 +31,10 @@ bool CommandAndStateMessageParser::checkDeviceMacAddress(string address)
     return mJData["devices"].isMember(address);
 }
 
-string CommandAndStateMessageParser::parseGetMessage()
+string CommandAndStateMessageParser::parseGetMessage(string api_version)
 {
     Json::Value message;
-    message["apiVersion"] = "0.8.3";
+    message["apiVersion"] = api_version;
     message["method"] = "GET";
     message["payload"] = {};
 
@@ -42,12 +42,13 @@ string CommandAndStateMessageParser::parseGetMessage()
 }
 
 string CommandAndStateMessageParser::parseRevolutionCommandMessage(
+    string api_version,
     string address,
     RevolutionControlCommand command
 )
 {
     Json::Value message;
-    message["apiVersion"] = "0.8.3";
+    message["apiVersion"] = api_version;
     message["method"] = "SET";
     message["payload"]["devices"][address]["auxLights"] = command.light;
     message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
@@ -63,12 +64,13 @@ string CommandAndStateMessageParser::parseRevolutionCommandMessage(
 }
 
 string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
+    string api_version,
     string address,
     PoweredReelControlCommand command
 )
 {
     Json::Value message;
-    message["apiVersion"] = "0.8.3";
+    message["apiVersion"] = api_version;
     message["method"] = "SET";
     message["payload"]["devices"][address]["reelFoward"] = command.reel_forward;
     message["payload"]["devices"][address]["reelReverse"] = command.reel_reverse;
@@ -78,12 +80,13 @@ string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
 }
 
 string CommandAndStateMessageParser::parseGrabberCommandMessage(
+    string api_version,
     string address,
     GrabberCommand command
 )
 {
     Json::Value message;
-    message["apiVersion"] = "0.8.3";
+    message["apiVersion"] = api_version;
     message["method"] = "SET";
     message["payload"]["devices"][address]["grabber"]["openClose"] = command.open;
     message["payload"]["devices"][address]["grabber"]["rotate"] =
@@ -93,12 +96,13 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(
 }
 
 string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(
+    string api_version,
     string address,
     TiltCameraHeadCommand command
 )
 {
     Json::Value message;
-    message["apiVersion"] = "0.8.3";
+    message["apiVersion"] = api_version;
     message["method"] = "SET";
     message["payload"]["devices"][address]["cameraHead"]["lights"] = command.light;
     message["payload"]["devices"][address]["cameraHead"]["lasers"] = command.laser;

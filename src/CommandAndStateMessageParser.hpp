@@ -18,20 +18,24 @@ namespace deep_trekker
       public:
         CommandAndStateMessageParser();
 
-        std::string parseGetMessage();
+        std::string parseGetMessage(std::string api_version);
         std::string parseRevolutionCommandMessage(
+            std::string api_version,
             std::string address,
             RevolutionControlCommand command
         );
         std::string parsePoweredReelCommandMessage(
+            std::string api_version,
             std::string address,
             PoweredReelControlCommand command
         );
         std::string parseGrabberCommandMessage(
+            std::string api_version,
             std::string address,
             GrabberCommand command
         );
         std::string parseTiltCameraHeadCommandMessage(
+            std::string api_version,
             std::string address,
             TiltCameraHeadCommand command
         );
