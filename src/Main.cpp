@@ -39,8 +39,7 @@ void leaveSession(
 bool initialHandShakeFinalized(
     shared_ptr<rtc::WebSocket>& websocket,
     SignalRMessageDecoder& decoder,
-    string& local_peer_id,
-    bool& client_id_checked
+    string& local_peer_id
 );
 void offerAnswerRustyMessageParser(
     shared_ptr<rtc::WebSocket>& websocket,
@@ -141,12 +140,13 @@ try
             }
 
             // initial Handshake
-            if (!initialHandShakeFinalized(
-                    signalr_websocket,
-                    signalr_decoder,
-                    local_peer_id,
-                    client_id_checked
-                ))
+            client_id_checked = initialHandShakeFinalized(
+                signalr_websocket,
+                signalr_decoder,
+                local_peer_id
+            );
+
+            if(!client_id_checked)
             {
                 return;
             }
@@ -444,8 +444,7 @@ void candidateSignalMessageParser(
 bool initialHandShakeFinalized(
     shared_ptr<rtc::WebSocket>& websocket,
     SignalRMessageDecoder& decoder,
-    string& local_peer_id,
-    bool& client_id_checked
+    string& local_peer_id
 )
 {
     if (decoder.isEmpty())
@@ -460,7 +459,6 @@ bool initialHandShakeFinalized(
     }
     else if (decoder.getClientId() == local_peer_id)
     {
-        client_id_checked = true;
         return true;
     }
 
