@@ -19,6 +19,22 @@ namespace deep_trekker
         CommandAndStateMessageParser();
 
         std::string parseGetMessage();
+        std::string parseRevolutionCommandMessage(
+            std::string address,
+            RevolutionControlCommand command
+        );
+        std::string parsePoweredReelCommandMessage(
+            std::string address,
+            PoweredReelControlCommand command
+        );
+        std::string parseGrabberCommandMessage(
+            std::string address,
+            GrabberCommand command
+        );
+        std::string parseTiltCameraHeadCommandMessage(
+            std::string address,
+            TiltCameraHeadCommand command
+        );
         base::Time getTimeUsage(std::string address);
         RovControl getVehicleStates(std::string address);
         Grabber getGrabberMotorInfo(std::string address);

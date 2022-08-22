@@ -41,6 +41,86 @@ string CommandAndStateMessageParser::parseGetMessage()
     return message.asString();
 }
 
+string CommandAndStateMessageParser::parseRevolutionCommandMessage(
+    string address,
+    RevolutionControlCommand command
+)
+{
+    Json::Value message;
+    message["apiVersion"] = "0.8.3";
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["auxLights"] = command.light;
+    message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
+           ["x"] = command.vehicle_setpoint.position[0];
+    message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
+           ["y"] = command.vehicle_setpoint.position[1];
+    message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
+           ["z"] = command.vehicle_setpoint.position[2];
+    message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
+           ["yaw"] = command.vehicle_setpoint.yaw.rad;
+
+    return message.asString();
+}
+
+string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
+    string address,
+    PoweredReelControlCommand command
+)
+{
+    Json::Value message;
+    message["apiVersion"] = "0.8.3";
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["reelFoward"] = command.reel_forward;
+    message["payload"]["devices"][address]["reelReverse"] = command.reel_reverse;
+    message["payload"]["devices"][address]["speed"] = command.speed.elements[0].speed;
+
+    return message.asString();
+}
+
+string CommandAndStateMessageParser::parseGrabberCommandMessage(
+    string address,
+    GrabberCommand command
+)
+{
+    Json::Value message;
+    message["apiVersion"] = "0.8.3";
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["grabber"]["openClose"] = command.open;
+    message["payload"]["devices"][address]["grabber"]["rotate"] =
+        command.speed.elements[0].speed;
+
+    return message.asString();
+}
+
+string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(
+    string address,
+    TiltCameraHeadCommand command
+)
+{
+    Json::Value message;
+    message["apiVersion"] = "0.8.3";
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["cameraHead"]["lights"] = command.light;
+    message["payload"]["devices"][address]["cameraHead"]["lasers"] = command.laser;
+    message["payload"]["devices"][address]["cameraHead"]["tilt"] =
+        command.speed.elements[0].speed;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["exposure"] =
+        command.camera.exposure;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["brightness"] =
+        command.camera.brightness;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["focus"] =
+        command.camera.focus;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["saturation"] =
+        command.camera.saturation;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["sharpness"] =
+        command.camera.sharpness;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["zoom"]["ratio"] =
+        command.camera.zoom.ratio;
+    message["payload"]["devices"][address]["cameraHead"]["camera"]["zoom"]["speed"] =
+        command.camera.zoom.speed.elements[0].speed;
+
+    return message.asString();
+}
 
 Time CommandAndStateMessageParser::getTimeUsage(string address)
 {
