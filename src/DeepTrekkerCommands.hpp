@@ -53,14 +53,36 @@ namespace deep_trekker
     {
         bool laser;
         double light;
-        base::samples::Joints tilt;
+        base::samples::Joints speed;
         TamronHarrierZoomCameraCommand camera;
     };
 
+    /**
+     * variables range not specified
+     * by DeepTrekker
+     */
     struct GrabberCommand
     {
         double open;
-        base::samples::Joints rotate;
+        base::samples::Joints speed;
+    };
+
+    /**
+     * Setpoint for position.
+     *
+     */
+    struct VehicleSetpoint
+    {
+        base::Time time;
+        base::Vector3d position;
+        base::Angle yaw;
+
+        VehicleSetpoint()
+        {
+            time = base::Time::now();
+            position = base::Vector3d::Zero();
+            yaw = base::Angle();
+        }
     };
 
     /**
@@ -72,9 +94,7 @@ namespace deep_trekker
     struct RevolutionControlCommand
     {
         double light;
-        GrabberCommand grabber;
-        TiltCameraHeadCommand camera_head;
-        base::samples::RigidBodyState vehicle_setpoint;
+        VehicleSetpoint vehicle_setpoint;
     };
 
     struct PoweredReelControlCommand
@@ -86,6 +106,8 @@ namespace deep_trekker
 
     enum DevicesCommandAction
     {
+        TiltCameraHeadCommandAction,
+        GrabberCommandAction,
         RevolutionCommandAction,
         PoweredReelCommandAction
     };
