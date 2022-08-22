@@ -62,12 +62,14 @@ void candidateSignalMessageParser(
 int main(int argc, char** argv)
 try
 {
-    if (argc != 2)
+    if (argc != 4)
     {
-        cout << "usage: " << argv[0] << " local peer id" << endl;
+        cout << "usage: " << argv[0] << " local_peer_id rusty_signal_server_host stun_server" << endl;
         exit(1);
     }
     string local_peer_id = argv[1];
+    string rusty_signal_server_host = argv[2];
+    string stun_server = argv[3];
 
     // Http post request
     curlpp::Cleanup cleaner;
@@ -97,8 +99,7 @@ try
     promise<void> wsr_promise;
     future<void> wsr_future = wsr_promise.get_future();
     rtc::Configuration signalr_config;
-    // TODO - make it configurable
-    signalr_config.iceServers.emplace_back("stun:stun.l.google.com:19302");
+    signalr_config.iceServers.emplace_back("stun:" + stun_server);
 
     // SignalR websocket
     auto signalr_websocket = make_shared<rtc::WebSocket>();
@@ -191,8 +192,7 @@ try
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
     rtc::Configuration rusty_config;
-    // TODO - make it configurable
-    rusty_config.iceServers.emplace_back("stun:stun.l.google.com:19302");
+    rusty_config.iceServers.emplace_back("stun:" + stun_server);
 
     rusty_websocket->onOpen(
         [&]()
@@ -248,26 +248,27 @@ try
     );
 
     // wss://signalserverhost?user=yourname
-    const string rusty_url_websocket = "127.0.0.1:3012?user=" + local_peer_id;
+    const string rusty_url_websocket = rusty_signal_server_host + "?user=" + local_peer_id;
     cout << "RustySignal WebSocket URL is " << rusty_url_websocket << endl;
     rusty_websocket->open(rusty_url_websocket);
 
-    while(true)
+    while (true)
     {
         string leave_session;
-		cout << "Enter with \"leave_session\" to disconnect:" << endl;
-		cin >> leave_session;
-		cin.ignore();
+        cout << "Enter with \"leave_session\" to disconnect:" << endl;
+        cin >> leave_session;
+        cin.ignore();
 
         if (signalr_decoder.checkSessionClosed())
         {
-            cout << "Session closed: Vehicle server disconnected" <<endl;
+            cout << "Session closed: Vehicle server disconnected" << endl;
             break;
         }
 
-        if (leave_session != "leave_session") {
-			cout << "Invalid argument: \"leave_session\" to disconnect" << endl;
-		}
+        if (leave_session != "leave_session")
+        {
+            cout << "Invalid argument: \"leave_session\" to disconnect" << endl;
+        }
         else
         {
             leaveSession(signalr_websocket, signalr_decoder, local_peer_id);
