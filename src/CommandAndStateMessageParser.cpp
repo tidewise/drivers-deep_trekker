@@ -38,7 +38,8 @@ string CommandAndStateMessageParser::parseGetMessage(string api_version)
     message["method"] = "GET";
     message["payload"] = {};
 
-    return message.asString();
+    Json::FastWriter fast;
+    return fast.write(message);
 }
 
 string CommandAndStateMessageParser::parseRevolutionCommandMessage(
@@ -60,7 +61,8 @@ string CommandAndStateMessageParser::parseRevolutionCommandMessage(
     message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"]
            ["yaw"] = command.vehicle_setpoint.yaw.rad;
 
-    return message.asString();
+    Json::FastWriter fast;
+    return fast.write(message);
 }
 
 string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
@@ -76,7 +78,8 @@ string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
     message["payload"]["devices"][address]["reelReverse"] = command.reel_reverse;
     message["payload"]["devices"][address]["speed"] = command.speed.elements[0].speed;
 
-    return message.asString();
+    Json::FastWriter fast;
+    return fast.write(message);
 }
 
 string CommandAndStateMessageParser::parseGrabberCommandMessage(
@@ -92,7 +95,8 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(
     message["payload"]["devices"][address]["grabber"]["rotate"] =
         command.speed.elements[0].speed;
 
-    return message.asString();
+    Json::FastWriter fast;
+    return fast.write(message);
 }
 
 string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(
@@ -123,7 +127,8 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(
     message["payload"]["devices"][address]["cameraHead"]["camera"]["zoom"]["speed"] =
         command.camera.zoom.speed.elements[0].speed;
 
-    return message.asString();
+    Json::FastWriter fast;
+    return fast.write(message);
 }
 
 Time CommandAndStateMessageParser::getTimeUsage(string address)
