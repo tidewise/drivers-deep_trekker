@@ -109,7 +109,8 @@ namespace deep_trekker
         TiltCameraHeadCommandAction,
         GrabberCommandAction,
         RevolutionCommandAction,
-        PoweredReelCommandAction
+        PoweredReelCommandAction,
+        QueryDeviceStateInfo
     };
 
 } // namespace deep_trekker
