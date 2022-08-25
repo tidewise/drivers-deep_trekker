@@ -58,8 +58,14 @@ namespace deep_trekker
     };
 
     /**
-     * variables range not specified
-     * by DeepTrekker
+     *  open:
+     *   - < 0: close grabber claw (min: -100)
+     *   - == 0: motor off
+     *   - > 0: open grabber claw (max: +100)
+     *  speed:
+     *   - < 0: rotate left (min: -100)
+     *   - == 0: motor off
+     *   - > 0: rotate right (max: +100)
      */
     struct GrabberCommand
     {
