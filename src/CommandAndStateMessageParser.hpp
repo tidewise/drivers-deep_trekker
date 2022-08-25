@@ -22,7 +22,7 @@ namespace deep_trekker
         std::string parseRevolutionCommandMessage(
             std::string api_version,
             std::string address,
-            RevolutionControlCommand command
+            PositionAndLightCommand command
         );
         std::string parsePoweredReelCommandMessage(
             std::string api_version,

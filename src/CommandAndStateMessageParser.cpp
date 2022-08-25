@@ -45,7 +45,7 @@ string CommandAndStateMessageParser::parseGetMessage(string api_version)
 string CommandAndStateMessageParser::parseRevolutionCommandMessage(
     string api_version,
     string address,
-    RevolutionControlCommand command
+    PositionAndLightCommand command
 )
 {
     Json::Value message;

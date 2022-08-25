@@ -91,7 +91,7 @@ namespace deep_trekker
      *   - max: 100
      *  -Command in local frame
      */
-    struct RevolutionControlCommand
+    struct PositionAndLightCommand
     {
         double light;
         VehicleSetpoint vehicle_setpoint;
