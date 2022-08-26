@@ -159,13 +159,6 @@ namespace deep_trekker
         MotorDiagnostics vertical_right_motor;
     };
 
-    struct DevicesInfo
-    {
-        Revolution revolution;
-        ManualReel manual_reel;
-        PoweredReel powered_reel;
-    };
-
 } // namespace deep_trekker
 
 #endif
