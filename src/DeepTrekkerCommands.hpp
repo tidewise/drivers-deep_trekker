@@ -110,15 +110,6 @@ namespace deep_trekker
         base::samples::Joints speed;
     };
 
-    enum DevicesCommandAction
-    {
-        TiltCameraHeadCommandAction,
-        GrabberCommandAction,
-        RevolutionCommandAction,
-        PoweredReelCommandAction,
-        QueryDeviceStateInfo
-    };
-
 } // namespace deep_trekker
 
 #endif
