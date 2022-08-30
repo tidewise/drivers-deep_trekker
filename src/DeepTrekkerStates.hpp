@@ -15,8 +15,7 @@ namespace deep_trekker
         std::string powered_reel;
     };
 
-    struct Battery
-    {
+    struct Battery {
         bool charging;
         double percentage;
         double voltage;

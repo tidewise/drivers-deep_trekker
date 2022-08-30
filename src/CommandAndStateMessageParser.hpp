@@ -3,6 +3,7 @@
 
 #include "deep_trekker/DeepTrekkerCommands.hpp"
 #include "deep_trekker/DeepTrekkerStates.hpp"
+#include "power_base/BatteryStatus.hpp"
 #include "stdio.h"
 #include "string.h"
 #include "json/json.h"

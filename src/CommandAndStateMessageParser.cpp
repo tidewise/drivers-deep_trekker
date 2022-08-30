@@ -3,6 +3,7 @@
 
 using namespace std;
 using namespace base;
+using namespace power_base;
 using namespace deep_trekker;
 
 CommandAndStateMessageParser::CommandAndStateMessageParser()
@@ -179,12 +180,11 @@ RovControl CommandAndStateMessageParser::getVehicleStates(string address)
     return control;
 }
 
-Battery CommandAndStateMessageParser::getBatteryInfo(string address, string battery_side)
+BatteryStatus CommandAndStateMessageParser::getBatteryStates(string address,
+    string battery_side)
 {
-    Battery battery;
-    battery.percentage = mJData["devices"][address][battery_side]["percent"].asDouble();
-    battery.voltage = mJData["devices"][address][battery_side]["voltage"].asDouble();
-    battery.charging = mJData["devices"][address][battery_side]["charging"].asDouble();
+    BatteryStatus battery;
+    battery.charge = mJData["devices"][address][battery_side]["percent"].asDouble() / 100;
 
     return battery;
 }

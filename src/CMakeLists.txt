@@ -9,7 +9,8 @@ rock_library(deep_trekker
             RustySignalMessageDecoder.hpp
             SignalRMessageDecoder.hpp
             HttpPostRequestReplyMessageDecoder.hpp
-    DEPS_PKGCONFIG jsoncpp base-types)
+    DEPS_PKGCONFIG base-types power_base jsoncpp)
+
 
 rock_executable(deep_trekker_bin Main.cpp
     DEPS deep_trekker
