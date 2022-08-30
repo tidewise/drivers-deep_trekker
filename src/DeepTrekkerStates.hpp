@@ -27,11 +27,11 @@ namespace deep_trekker {
      *   - > 0: moving forward
      *   - = 0: not moving
      */
-    struct MotorDiagnostics
-    {
-        double current;
+    struct MotorDiagnostics {
         bool overcurrent;
-        base::samples::Joints motor;
+        base::samples::Joints pwm;
+        base::samples::Joints rotation;
+        base::samples::Joints current;
     };
 
     /**
@@ -41,10 +41,9 @@ namespace deep_trekker {
      *   - min: -1 (revert/retract)
      *   - max: +1 (forward)
      */
-    struct ZoomControl
-    {
-        double ratio;
-        base::samples::Joints speed;
+    struct ZoomControl {
+        float ratio;
+        float speed;
     };
 
     /**
@@ -55,13 +54,12 @@ namespace deep_trekker {
      *   - min: 0
      *   - max: 1
      */
-    struct TamronHarrierZoomCamera
-    {
-        double exposure;
-        double brightness;
-        double focus;
-        double saturation;
-        double sharpness;
+    struct TamronHarrierZoomCamera {
+        float exposure;
+        float brightness;
+        float focus;
+        float saturation;
+        float sharpness;
         ZoomControl zoom;
     };
 
@@ -117,11 +115,9 @@ namespace deep_trekker {
         MotorDiagnostics motor_2;
     };
 
-    struct Grabber
-    {
-        double open;
-        base::samples::Joints rotate_command;
-        MotorDiagnostics motor_diagnostic;
+    struct Grabber {
+        MotorDiagnostics open_close_diagnostics;
+        MotorDiagnostics rotate_diagnostics;
     };
 
     /** Command and state in local frame */

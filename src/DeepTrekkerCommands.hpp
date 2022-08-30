@@ -14,27 +14,22 @@ namespace deep_trekker {
      *   - min: -1 (revert/retract)
      *   - max: +1 (forward)
      */
-    struct ZoomControlCommand
-    {
-        double ratio;
-        base::samples::Joints speed;
+    struct ZoomControlCommand {
+        float ratio;
+        float speed;
     };
 
     /**
-     *  brightness/focus/saturation/sharpness:
+     *  brightness/focus/saturation/sharpness/exposure:
      *   - min: 0
      *   - max 1
-     *  exposure:
-     *   - min: 0
-     *   - max: 1
      */
-    struct TamronHarrierZoomCameraCommand
-    {
-        double exposure;
-        double brightness;
-        double focus;
-        double saturation;
-        double sharpness;
+    struct TamronHarrierZoomCameraCommand {
+        float exposure;
+        float brightness;
+        float focus;
+        float saturation;
+        float sharpness;
         ZoomControlCommand zoom;
     };
 
@@ -49,11 +44,11 @@ namespace deep_trekker {
      *   - min: -1
      *   - max: +1
      */
-    struct TiltCameraHeadCommand
-    {
+    struct TiltCameraHeadCommand {
         bool laser;
         double light;
         base::samples::Joints speed;
+        base::samples::Joints position;
         TamronHarrierZoomCameraCommand camera;
     };
 
