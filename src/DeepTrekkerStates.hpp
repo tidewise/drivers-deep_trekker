@@ -4,6 +4,7 @@
 #include <base/Time.hpp>
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
+#include <power_base/BatteryStatus.hpp>
 
 namespace deep_trekker {
 
@@ -11,12 +12,6 @@ namespace deep_trekker {
         std::string revolution;
         std::string manual_reel;
         std::string powered_reel;
-    };
-
-    struct Battery {
-        bool charging;
-        double percentage;
-        double voltage;
     };
 
     /**
@@ -109,8 +104,8 @@ namespace deep_trekker {
         double tether_distance;
         double cpu_temperature;
         base::samples::Joints speed;
-        Battery battery_1;
-        Battery battery_2;
+        power_base::BatteryStatus battery_1;
+        power_base::BatteryStatus battery_2;
         MotorDiagnostics motor_1;
         MotorDiagnostics motor_2;
     };
@@ -135,8 +130,8 @@ namespace deep_trekker {
         double light;
         base::Time usage_time;
         RovControl vehicle_control;
-        Battery left_battery;
-        Battery right_battery;
+        power_base::BatteryStatus left_battery;
+        power_base::BatteryStatus right_battery;
         Grabber grabber;
         TiltCameraHead camera_head;
         MotorDiagnostics front_left_motor;
