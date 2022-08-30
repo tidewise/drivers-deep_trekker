@@ -1,6 +1,7 @@
 #ifndef _DEEP_TREKKER_COMMANDS_HPP_
 #define _DEEP_TREKKER_COMMANDS_HPP_
 
+#include "base/commands/LinearAngular6DCommand.hpp"
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 
@@ -73,22 +74,6 @@ namespace deep_trekker
         base::samples::Joints speed;
     };
 
-    /**
-     * Setpoint for position.
-     *
-     */
-    struct VehicleSetpoint
-    {
-        base::Time time;
-        base::Vector3d position;
-        base::Angle yaw;
-
-        VehicleSetpoint()
-        {
-            time = base::Time::now();
-            position = base::Vector3d::Zero();
-            yaw = base::Angle();
-        }
     };
 
     /**
@@ -97,10 +82,9 @@ namespace deep_trekker
      *   - max: 100
      *  -Command in local frame
      */
-    struct PositionAndLightCommand
-    {
+    struct PositionAndLightCommand {
         double light;
-        VehicleSetpoint vehicle_setpoint;
+        base::commands::LinearAngular6DCommand vehicle_setpoint;
     };
 
     struct PoweredReelControlCommand
