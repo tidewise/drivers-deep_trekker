@@ -37,10 +37,10 @@ namespace deep_trekker {
      *  light:
      *   - min: 0
      *   - max: 1
-     *  position (joint):
+     *  position:
      *   - min: -pi
      *   - max: +pi
-     *  velocity (joint):
+     *  velocity:
      *   - min: -1
      *   - max: +1
      */

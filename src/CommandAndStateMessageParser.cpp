@@ -315,7 +315,7 @@ double CommandAndStateMessageParser::getTetherLenght(string address)
     return mJData["devices"][address]["distance"].asDouble();
 }
 
-double CommandAndStateMessageParser::getTemperature(string address)
+double CommandAndStateMessageParser::getCpuTemperature(string address)
 {
     return mJData["devices"][address]["cpuTemp"].asDouble();
 }
@@ -340,7 +340,7 @@ bool CommandAndStateMessageParser::isACPowerConnected(string address)
     return mJData["devices"][address]["acConnected"].asBool();
 }
 
-bool CommandAndStateMessageParser::isEStopStarted(string address)
+bool CommandAndStateMessageParser::isEStopEnabled(string address)
 {
     return mJData["devices"][address]["eStop"].asBool();
 }

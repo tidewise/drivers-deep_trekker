@@ -40,10 +40,10 @@ namespace deep_trekker {
             std::string battery_side);
         base::samples::Joints getPoweredReelSpeed(std::string address);
         double getLightIntensity(std::string address);
-        double getTemperature(std::string address);
+        double getCpuTemperature(std::string address);
         double getTetherLenght(std::string address);
         bool isACPowerConnected(std::string address);
-        bool isEStopStarted(std::string address);
+        bool isEStopEnabled(std::string address);
         bool isCalibrated(std::string address);
         bool isReady(std::string address);
         bool isLeaking(std::string address);

@@ -32,7 +32,7 @@ namespace deep_trekker {
     /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
-     *  speed (joint):
+     *  speed:
      *   - min: -1 (revert/retract)
      *   - max: +1 (forward)
      */
@@ -62,10 +62,10 @@ namespace deep_trekker {
      *  light:
      *   - min: 0
      *   - max: 1
-     *  position (joint):
+     *  position:
      *   - min: -pi
      *   - max: +pi
-     *  velocity (joint):
+     *  velocity:
      *   - min: -1
      *   - max: +1
      */
@@ -84,7 +84,7 @@ namespace deep_trekker {
         bool calibrated;
         bool leak;
         bool ready;
-        double tether_distance;
+        double tether_lenght;
         double cpu_temperature;
     };
 
@@ -101,7 +101,7 @@ namespace deep_trekker {
         bool ready;
         bool estop_enabled;
         bool ac_power_connected;
-        double tether_distance;
+        double tether_lenght;
         double cpu_temperature;
         base::samples::Joints speed;
         power_base::BatteryStatus battery_1;
