@@ -5,15 +5,14 @@
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 
-namespace deep_trekker
-{
+namespace deep_trekker {
 
     /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
      *  speed (joint):
-     *   - min: -100 (revert/retract)
-     *   - max: +100 (forward)
+     *   - min: -1 (revert/retract)
+     *   - max: +1 (forward)
      */
     struct ZoomControlCommand
     {
@@ -24,10 +23,10 @@ namespace deep_trekker
     /**
      *  brightness/focus/saturation/sharpness:
      *   - min: 0
-     *   - max 100
+     *   - max 1
      *  exposure:
      *   - min: 0
-     *   - max: 15
+     *   - max: 1
      */
     struct TamronHarrierZoomCameraCommand
     {
@@ -42,13 +41,13 @@ namespace deep_trekker
     /**
      *  light:
      *   - min: 0
-     *   - max: 100
+     *   - max: 1
      *  position (joint):
-     *   - min: -180
-     *   - max: +180
+     *   - min: -pi
+     *   - max: +pi
      *  velocity (joint):
-     *   - min: -100
-     *   - max: +100
+     *   - min: -1
+     *   - max: +1
      */
     struct TiltCameraHeadCommand
     {
@@ -59,27 +58,24 @@ namespace deep_trekker
     };
 
     /**
-     *  open:
-     *   - < 0: close grabber claw (min: -100)
+     *  open_close (unit: motor power):
+     *   - < 0: close grabber claw (min: -1)
      *   - == 0: motor off
-     *   - > 0: open grabber claw (max: +100)
-     *  speed:
-     *   - < 0: rotate left (min: -100)
+     *   - > 0: open grabber claw (max: +1)
+     *  rotate (unit: motor power):
+     *   - < 0: rotate left (min: -1)
      *   - == 0: motor off
-     *   - > 0: rotate right (max: +100)
+     *   - > 0: rotate right (max: +1)
      */
-    struct GrabberCommand
-    {
-        double open;
-        base::samples::Joints speed;
-    };
-
+    struct GrabberCommand {
+        base::samples::Joints open_close;
+        base::samples::Joints rotate;
     };
 
     /**
      *  -light:
      *   - min: 0
-     *   - max: 100
+     *   - max: 1
      *  -Command in local frame
      */
     struct PositionAndLightCommand {
@@ -87,10 +83,12 @@ namespace deep_trekker
         base::commands::LinearAngular6DCommand vehicle_setpoint;
     };
 
-    struct PoweredReelControlCommand
-    {
-        bool reel_forward;
-        bool reel_reverse;
+    /**
+     *  speed:
+     *   - min: -1 (revert/retract)
+     *   - max: +1 (forward)
+     */
+    struct PoweredReelControlCommand {
         base::samples::Joints speed;
     };
 

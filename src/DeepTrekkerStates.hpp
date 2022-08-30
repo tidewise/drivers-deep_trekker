@@ -5,11 +5,9 @@
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 
-namespace deep_trekker
-{
+namespace deep_trekker {
 
-    struct DevicesMacAddress
-    {
+    struct DevicesMacAddress {
         std::string revolution;
         std::string manual_reel;
         std::string powered_reel;
@@ -23,8 +21,8 @@ namespace deep_trekker
 
     /**
      *  current (mA)
-     *  pwm (%)
-     *  rpm:
+     *  pwm ([0 1])
+     *  rotation (rad/s):
      *   - < 0: reversing
      *   - > 0: moving forward
      *   - = 0: not moving
@@ -40,8 +38,8 @@ namespace deep_trekker
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
      *  speed (joint):
-     *   - min: -100 (revert/retract)
-     *   - max: +100 (forward)
+     *   - min: -1 (revert/retract)
+     *   - max: +1 (forward)
      */
     struct ZoomControl
     {
@@ -52,10 +50,10 @@ namespace deep_trekker
     /**
      *  brightness/focus/saturation/sharpness:
      *   - min: 0
-     *   - max 100
+     *   - max 1
      *  exposure:
      *   - min: 0
-     *   - max: 15
+     *   - max: 1
      */
     struct TamronHarrierZoomCamera
     {
@@ -70,16 +68,15 @@ namespace deep_trekker
     /**
      *  light:
      *   - min: 0
-     *   - max: 100
+     *   - max: 1
      *  position (joint):
-     *   - min: -180
-     *   - max: +180
+     *   - min: -pi
+     *   - max: +pi
      *  velocity (joint):
-     *   - min: -100
-     *   - max: +100
+     *   - min: -1
+     *   - max: +1
      */
-    struct TiltCameraHead
-    {
+    struct TiltCameraHead {
         bool laser;
         double light;
         base::samples::Joints tilt_command;
@@ -90,8 +87,7 @@ namespace deep_trekker
     /**
      *  tether_distance (payed out tether distance, given in cm)
      */
-    struct ManualReel
-    {
+    struct ManualReel {
         bool calibrated;
         bool leak;
         bool ready;
@@ -103,11 +99,10 @@ namespace deep_trekker
      *  tether_distance (payed out tether distance, given in cm)
      *  estop_enabled (physical button state)
      *  speed:
-     *   - min: -100 (revert/retract)
-     *   - max: +100 (forward)
+     *   - min: -1 (revert/retract)
+     *   - max: +1 (forward)
      */
-    struct PoweredReel
-    {
+    struct PoweredReel {
         bool calibrated;
         bool leak;
         bool ready;
@@ -130,8 +125,7 @@ namespace deep_trekker
     };
 
     /** Command and state in local frame */
-    struct RovControl
-    {
+    struct RovControl {
         base::samples::RigidBodyState vehicle_setpoint;
         base::samples::RigidBodyState state_estimator;
     };
@@ -139,10 +133,9 @@ namespace deep_trekker
     /**
      *  light:
      *   - min: 0
-     *   - max: 100
+     *   - max: 1
      */
-    struct Revolution
-    {
+    struct Revolution {
         double light;
         base::Time usage_time;
         RovControl vehicle_control;

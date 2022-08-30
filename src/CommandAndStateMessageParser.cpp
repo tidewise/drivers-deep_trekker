@@ -16,13 +16,10 @@ bool CommandAndStateMessageParser::parseJSONMessage(char const* data, string& er
     return mReader->parse(data, data + strlen(data), &mJData, &errors);
 }
 
-void CommandAndStateMessageParser::validateFieldPresent(
-    Json::Value const& value,
-    string const& fieldName
-)
+void CommandAndStateMessageParser::validateFieldPresent(Json::Value const& value,
+    string const& fieldName)
 {
-    if (!value.isMember(fieldName))
-    {
+    if (!value.isMember(fieldName)) {
         throw invalid_argument("message does not contain the " + fieldName + " field");
     }
 }
@@ -63,35 +60,40 @@ string CommandAndStateMessageParser::parseRevolutionCommandMessage(string api_ve
     return fast.write(message);
 }
 
-string CommandAndStateMessageParser::parsePoweredReelCommandMessage(
-    string api_version,
+string CommandAndStateMessageParser::parsePoweredReelCommandMessage(string api_version,
     string address,
-    PoweredReelControlCommand command
-)
+    PoweredReelControlCommand command)
 {
     Json::Value message;
     message["apiVersion"] = api_version;
     message["method"] = "SET";
-    message["payload"]["devices"][address]["reelFoward"] = command.reel_forward;
-    message["payload"]["devices"][address]["reelReverse"] = command.reel_reverse;
-    message["payload"]["devices"][address]["speed"] = command.speed.elements[0].speed;
-
+    message["payload"]["devices"][address]["reelFoward"] = false;
+    message["payload"]["devices"][address]["reelReverse"] = false;
+    if (command.speed.elements[0].speed > 0) {
+        message["payload"]["devices"][address]["reelFoward"] = true;
+        message["payload"]["devices"][address]["reelReverse"] = false;
+    }
+    else if (command.speed.elements[0].speed < 0) {
+        message["payload"]["devices"][address]["reelFoward"] = false;
+        message["payload"]["devices"][address]["reelReverse"] = true;
+    }
+    message["payload"]["devices"][address]["speed"] =
+        min(max(static_cast<double>(command.speed.elements[0].speed), -1.0), 1.0) * 100;
     Json::FastWriter fast;
     return fast.write(message);
 }
 
-string CommandAndStateMessageParser::parseGrabberCommandMessage(
-    string api_version,
+string CommandAndStateMessageParser::parseGrabberCommandMessage(string api_version,
     string address,
-    GrabberCommand command
-)
+    GrabberCommand command)
 {
     Json::Value message;
     message["apiVersion"] = api_version;
     message["method"] = "SET";
-    message["payload"]["devices"][address]["grabber"]["openClose"] = command.open;
+    message["payload"]["devices"][address]["grabber"]["openClose"] =
+        command.open_close.elements[0].raw;
     message["payload"]["devices"][address]["grabber"]["rotate"] =
-        command.speed.elements[0].speed;
+        command.rotate.elements[0].raw;
 
     Json::FastWriter fast;
     return fast.write(message);

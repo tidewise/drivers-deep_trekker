@@ -11,33 +11,27 @@
 #include <base/Eigen.hpp>
 #include <base/Time.hpp>
 #include <memory>
+#include <algorithm>
 
-namespace deep_trekker
-{
+namespace deep_trekker {
 
-    class CommandAndStateMessageParser
-    {
-      public:
+    class CommandAndStateMessageParser {
+    public:
         CommandAndStateMessageParser();
 
         std::string parseGetMessage(std::string api_version);
         std::string parseRevolutionCommandMessage(std::string api_version,
             std::string address,
-        std::string parsePoweredReelCommandMessage(
-            std::string api_version,
+            PositionAndLightCommand command);
+        std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
-            PoweredReelControlCommand command
-        );
-        std::string parseGrabberCommandMessage(
-            std::string api_version,
+            PoweredReelControlCommand command);
+        std::string parseGrabberCommandMessage(std::string api_version,
             std::string address,
-            GrabberCommand command
-        );
-        std::string parseTiltCameraHeadCommandMessage(
-            std::string api_version,
+            GrabberCommand command);
+        std::string parseTiltCameraHeadCommandMessage(std::string api_version,
             std::string address,
-            TiltCameraHeadCommand command
-        );
+            TiltCameraHeadCommand command);
         base::Time getTimeUsage(std::string address);
         RovControl getVehicleStates(std::string address);
         Grabber getGrabberMotorInfo(std::string address);
@@ -57,7 +51,7 @@ namespace deep_trekker
         bool parseJSONMessage(char const* data, std::string& errors);
         void validateFieldPresent(Json::Value const& value, std::string const& fieldName);
 
-      private:
+    private:
         Json::Value mJData;
         Json::CharReaderBuilder mRBuilder;
         std::unique_ptr<Json::CharReader> mReader;
