@@ -138,10 +138,10 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     command.camera.zoom.speed = 0.75;
     vector<double> position_command_vector;
     position_command_vector.push_back(M_PI);
-    command.position = samples::Joints::Positions(position_command_vector);
+    command.tilt_command = samples::Joints::Positions(position_command_vector);
     vector<float> velocity_command_vector;
     velocity_command_vector.push_back(-0.4);
-    command.speed = samples::Joints::Speeds(velocity_command_vector);
+    command.tilt_command = samples::Joints::Speeds(velocity_command_vector);
     string message =
         parser.parseTiltCameraHeadCommandMessage(api_version, address, command);
 
@@ -159,9 +159,9 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     ASSERT_EQ(camera_head["lights"].asDouble(), command.light * 100);
     ASSERT_EQ(camera_head["lasers"].asBool(), command.laser);
     ASSERT_EQ(camera_head["tilt"]["position"].asDouble(),
-        command.position.elements[0].position * 180 / M_PI);
+        command.tilt_command.elements[0].position * 180 / M_PI);
     ASSERT_EQ(camera_head["tilt"]["speed"].asFloat(),
-        command.speed.elements[0].speed * 100);
+        command.tilt_command.elements[0].speed * 100);
     ASSERT_EQ(camera_head["camera"]["exposure"].asFloat(), command.camera.exposure * 15);
     ASSERT_EQ(camera_head["camera"]["brightness"].asFloat(),
         command.camera.brightness * 100);

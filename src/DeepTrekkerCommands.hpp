@@ -37,18 +37,17 @@ namespace deep_trekker {
      *  light:
      *   - min: 0
      *   - max: 1
-     *  position:
+     *  tilt_command (position):
      *   - min: -pi
      *   - max: +pi
-     *  velocity:
+     *  tilt_command (velocity):
      *   - min: -1
      *   - max: +1
      */
     struct TiltCameraHeadCommand {
         bool laser;
         double light;
-        base::samples::Joints speed;
-        base::samples::Joints position;
+        base::samples::Joints tilt_command;
         TamronHarrierZoomCameraCommand camera;
     };
 

@@ -15,18 +15,17 @@ namespace deep_trekker {
     };
 
     /**
-     *  current (mA)
-     *  pwm ([0 1])
-     *  rotation (rad/s):
-     *   - < 0: reversing
-     *   - > 0: moving forward
-     *   - = 0: not moving
+     *  motor:
+     *   - current (mA): effort joint
+     *   - pwm ([0 1]): raw joint
+     *   - rotation (rad/s - speed joint):
+     *     - < 0: reversing
+     *     - > 0: moving forward
+     *     - = 0: not moving
      */
     struct MotorDiagnostics {
         bool overcurrent;
-        base::samples::Joints pwm;
-        base::samples::Joints rotation;
-        base::samples::Joints current;
+        base::samples::Joints motor;
     };
 
     /**
@@ -62,10 +61,10 @@ namespace deep_trekker {
      *  light:
      *   - min: 0
      *   - max: 1
-     *  position:
+     *  tilt_command (position):
      *   - min: -pi
      *   - max: +pi
-     *  velocity:
+     *  tilt_command (velocity):
      *   - min: -1
      *   - max: +1
      */

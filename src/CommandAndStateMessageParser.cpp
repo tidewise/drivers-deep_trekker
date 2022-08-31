@@ -112,9 +112,9 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     camera_head["lights"] = min(max(command.light, 0.0), 1.0) * 100;
     camera_head["lasers"] = command.laser;
     camera_head["tilt"]["position"] =
-        min(max(command.position.elements[0].position, -M_PI), M_PI) * 180 / M_PI;
+        min(max(command.tilt_command.elements[0].position, -M_PI), M_PI) * 180 / M_PI;
     camera_head["tilt"]["speed"] =
-        min(max(static_cast<double>(command.speed.elements[0].speed), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(command.tilt_command.elements[0].speed), -1.0), 1.0) * 100;
     camera_head["camera"]["exposure"] =
         min(max(static_cast<double>(command.camera.exposure), 0.0), 1.0) * 15;
     camera_head["camera"]["brightness"] =
@@ -187,15 +187,15 @@ MotorDiagnostics CommandAndStateMessageParser::getMotorStates(string address,
     vector<float> vector_pwm_motor;
     vector_pwm_motor.push_back(
         mJData["devices"][address][motor_side]["pwm"].asFloat() / 100);
-    motor.pwm = samples::Joints::Raw(vector_pwm_motor);
+    motor.motor = samples::Joints::Raw(vector_pwm_motor);
     vector<float> vector_current_motor;
     vector_current_motor.push_back(
         mJData["devices"][address][motor_side]["current"].asDouble());
-    motor.current = samples::Joints::Efforts(vector_current_motor);
+    motor.motor = samples::Joints::Efforts(vector_current_motor);
     vector<float> vector_rad_motor;
     vector_rad_motor.push_back(
         mJData["devices"][address][motor_side]["rpm"].asFloat() * 2 * M_PI / 60);
-    motor.rotation = samples::Joints::Speeds(vector_rad_motor);
+    motor.motor = samples::Joints::Speeds(vector_rad_motor);
 
     return motor;
 }
@@ -210,18 +210,18 @@ Grabber CommandAndStateMessageParser::getGrabberMotorStates(string address)
     vector<float> vector_open_pwm_motor;
     vector_open_pwm_motor.push_back(
         mJData["devices"]["openCloseMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100);
-    open_close_motor.rotation = samples::Joints::Raw(vector_open_pwm_motor);
+    open_close_motor.motor = samples::Joints::Raw(vector_open_pwm_motor);
     vector<float> vector_open_current_motor;
     vector_open_current_motor.push_back(
         mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["current"]
             .asDouble());
-    open_close_motor.current = samples::Joints::Efforts(vector_open_current_motor);
+    open_close_motor.motor = samples::Joints::Efforts(vector_open_current_motor);
     vector<float> vector_open_rad_motor;
     vector_open_rad_motor.push_back(
         mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["rpm"]
             .asFloat() *
         2 * M_PI / 60);
-    open_close_motor.rotation = samples::Joints::Speeds(vector_open_rad_motor);
+    open_close_motor.motor = samples::Joints::Speeds(vector_open_rad_motor);
     grabber.open_close_diagnostics = open_close_motor;
     MotorDiagnostics rotate_motor;
     rotate_motor.overcurrent =
@@ -230,17 +230,17 @@ Grabber CommandAndStateMessageParser::getGrabberMotorStates(string address)
     vector<float> vector_rotate_pwm_motor;
     vector_rotate_pwm_motor.push_back(
         mJData["devices"]["rollMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100);
-    rotate_motor.rotation = samples::Joints::Raw(vector_rotate_pwm_motor);
+    rotate_motor.motor = samples::Joints::Raw(vector_rotate_pwm_motor);
     vector<float> vector_rotate_current_motor;
     vector_rotate_current_motor.push_back(
         mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["current"]
             .asDouble());
-    rotate_motor.current = samples::Joints::Efforts(vector_rotate_current_motor);
+    rotate_motor.motor = samples::Joints::Efforts(vector_rotate_current_motor);
     vector<float> vector_rotate_rad_motor;
     vector_rotate_rad_motor.push_back(
         mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["rpm"].asFloat() *
         2 * M_PI / 60);
-    rotate_motor.rotation = samples::Joints::Speeds(vector_rotate_rad_motor);
+    rotate_motor.motor = samples::Joints::Speeds(vector_rotate_rad_motor);
     grabber.rotate_diagnostics = rotate_motor;
 
     return grabber;
@@ -270,18 +270,18 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadStates(string address)
         mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["pwm"]
             .asFloat() /
         100);
-    tilt_motor.pwm = samples::Joints::Raw(vector_pwm_motor);
+    tilt_motor.motor = samples::Joints::Raw(vector_pwm_motor);
     vector<float> vector_current_motor;
     vector_current_motor.push_back(
         mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["current"]
             .asDouble());
-    tilt_motor.current = samples::Joints::Efforts(vector_current_motor);
+    tilt_motor.motor = samples::Joints::Efforts(vector_current_motor);
     vector<float> vector_rad_motor;
     vector_rad_motor.push_back(
         mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["rpm"]
             .asFloat() *
         2 * M_PI / 60);
-    tilt_motor.rotation = samples::Joints::Speeds(vector_rad_motor);
+    tilt_motor.motor = samples::Joints::Speeds(vector_rad_motor);
     camera_head.tilt_motor_diagnostics = tilt_motor;
     camera_head.camera.brightness =
         mJData["devices"][address]["cameraHead"]["camera"]["brightness"].asFloat() / 100;
