@@ -67,7 +67,7 @@ TEST_F(MessageParserTest, it_parse_revolution_command_message)
     ASSERT_EQ(value["x"], command.vehicle_setpoint.linear[0]);
     ASSERT_EQ(value["y"], command.vehicle_setpoint.linear[1]);
     ASSERT_EQ(value["z"], command.vehicle_setpoint.linear[2]);
-    ASSERT_EQ(value["yaw"], command.vehicle_setpoint.angular[2] * 180 / M_PI);
+    ASSERT_EQ(value["yaw"], command.vehicle_setpoint.angular[2]);
 }
 
 TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
@@ -157,7 +157,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     ASSERT_EQ(camera_head["lights"].asDouble(), command.light * 100);
     ASSERT_EQ(camera_head["lasers"].asBool(), command.laser);
     ASSERT_EQ(camera_head["tilt"]["position"].asDouble(),
-        tilt.elements[0].position * 180 / M_PI);
+        tilt.elements[0].position);
     ASSERT_EQ(camera_head["tilt"]["speed"].asFloat(),
         tilt.elements[0].speed * 100);
     ASSERT_EQ(camera_head["camera"]["exposure"].asFloat(), command.camera.exposure * 15);

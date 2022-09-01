@@ -54,7 +54,7 @@ string CommandAndStateMessageParser::parseRevolutionCommandMessage(string api_ve
     local_frame["x"] = command.vehicle_setpoint.linear[0];
     local_frame["y"] = command.vehicle_setpoint.linear[1];
     local_frame["z"] = command.vehicle_setpoint.linear[2];
-    local_frame["yaw"] = command.vehicle_setpoint.angular[2] * 180 / M_PI;
+    local_frame["yaw"] = command.vehicle_setpoint.angular[2];
     message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"] =
         local_frame;
 
@@ -113,7 +113,7 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     camera_head["lights"] = min(max(head.light, 0.0), 1.0) * 100;
     camera_head["lasers"] = head.laser;
     camera_head["tilt"]["position"] =
-        min(max(tilt.elements[0].position, -M_PI), M_PI) * 180 / M_PI;
+        min(max(tilt.elements[0].position, -M_PI), M_PI);
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
     camera_head["camera"]["exposure"] =
@@ -148,7 +148,7 @@ RevolutionControl CommandAndStateMessageParser::getRevolutionControlStates(strin
     double setpoint_x = msg_setpoint["x"].asDouble();
     double setpoint_y = msg_setpoint["y"].asDouble();
     double setpoint_z = msg_setpoint["z"].asDouble();
-    double setpoint_yaw = msg_setpoint["yaw"].asDouble() * M_PI / 180;
+    double setpoint_yaw = msg_setpoint["yaw"].asDouble();
 
     RevolutionControl control;
     control.position.x() = setpoint_x;
@@ -166,7 +166,7 @@ RevolutionBodyStates CommandAndStateMessageParser::getRevolutionBodyStates(strin
     double state_x = local_frame["x"].asDouble();
     double state_y = local_frame["y"].asDouble();
     double state_z = local_frame["z"].asDouble();
-    double state_yaw = local_frame["yaw"].asDouble() * M_PI / 180;
+    double state_yaw = local_frame["yaw"].asDouble();
 
     RevolutionBodyStates control;
     control.position.x() = state_x;

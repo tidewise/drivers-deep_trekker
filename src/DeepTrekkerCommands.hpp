@@ -10,7 +10,7 @@ namespace deep_trekker {
     /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
-     *  speed (joint):
+     *  speed:
      *   - min: -1 (revert/retract)
      *   - max: +1 (forward)
      */
@@ -65,7 +65,7 @@ namespace deep_trekker {
     };
 
     /**
-     *  motors:
+     *  motors (raw joint):
      *   open_close (unit: motor power):
      *    - < 0: close grabber claw (min: -1)
      *    - == 0: motor off
