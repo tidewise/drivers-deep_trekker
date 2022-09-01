@@ -25,6 +25,6 @@ void HttpPostRequestReplyMessageDecoder::validateFieldPresent(
 string HttpPostRequestReplyMessageDecoder::getConnectionToken()
 {
     validateFieldPresent(mJData, "connectionToken");
-    return mJData["action"].asString();
+    return mJData["connectionToken"].asString();
 }
 
