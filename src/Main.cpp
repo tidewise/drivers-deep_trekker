@@ -299,7 +299,7 @@ void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket)
 void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_id)
 {
     Json::Value message, content(Json::arrayValue);
-    content.append(local_peer_id);
+    content.append("client_id:" + local_peer_id);
     message["arguments"] = content;
     message["invocationId"] = "0";
     message["streamIds"] = Json::arrayValue;
@@ -319,8 +319,8 @@ void joinSession(
 )
 {
     Json::Value message, content(Json::arrayValue);
-    content.append(local_peer_id);
-    content.append(decoder.getSessionIdFromList());
+    content.append("client_id:" + local_peer_id);
+    content.append("session_id:" + decoder.getSessionIdFromList());
     message["arguments"] = content;
     message["invocationId"] = "0";
     message["streamIds"] = Json::arrayValue;
@@ -340,8 +340,8 @@ void leaveSession(
 )
 {
     Json::Value message, content(Json::arrayValue);
-    content.append(local_peer_id);
-    content.append(decoder.getSessionIdFromList());
+    content.append("client_id:" + local_peer_id);
+    content.append("session_id:" + decoder.getSessionIdFromList());
     message["arguments"] = content;
     message["invocationId"] = "0";
     message["streamIds"] = Json::arrayValue;
