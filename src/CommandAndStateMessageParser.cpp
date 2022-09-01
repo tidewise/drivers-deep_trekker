@@ -71,16 +71,16 @@ string CommandAndStateMessageParser::parsePoweredReelCommandMessage(string api_v
     message["method"] = "SET";
     message["payload"]["devices"][address]["reelFoward"] = false;
     message["payload"]["devices"][address]["reelReverse"] = false;
-    if (command.speed.elements[0].speed > 0) {
+    if (command.elements[0].speed > 0) {
         message["payload"]["devices"][address]["reelFoward"] = true;
         message["payload"]["devices"][address]["reelReverse"] = false;
     }
-    else if (command.speed.elements[0].speed < 0) {
+    else if (command.elements[0].speed < 0) {
         message["payload"]["devices"][address]["reelFoward"] = false;
         message["payload"]["devices"][address]["reelReverse"] = true;
     }
     message["payload"]["devices"][address]["speed"] =
-        min(max(static_cast<double>(command.speed.elements[0].speed), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(command.elements[0].speed), -1.0), 1.0) * 100;
     Json::FastWriter fast;
     return fast.write(message);
 }
@@ -93,9 +93,9 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(string api_versi
     message["apiVersion"] = api_version;
     message["method"] = "SET";
     message["payload"]["devices"][address]["grabber"]["openClose"] =
-        min(max(static_cast<double>(command.open_close.elements[0].raw), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(command.elements[0].raw), -1.0), 1.0) * 100;
     message["payload"]["devices"][address]["grabber"]["rotate"] =
-        min(max(static_cast<double>(command.rotate.elements[0].raw), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(command.elements[1].raw), -1.0), 1.0) * 100;
 
     Json::FastWriter fast;
     return fast.write(message);
@@ -103,31 +103,32 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(string api_versi
 
 string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string api_version,
     string address,
-    TiltCameraHeadCommand command)
+    CameraHeadCommand head,
+    TiltCameraHeadCommand tilt)
 {
     Json::Value message;
     message["apiVersion"] = api_version;
     message["method"] = "SET";
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
-    camera_head["lights"] = min(max(command.light, 0.0), 1.0) * 100;
-    camera_head["lasers"] = command.laser;
+    camera_head["lights"] = min(max(head.light, 0.0), 1.0) * 100;
+    camera_head["lasers"] = head.laser;
     camera_head["tilt"]["position"] =
-        min(max(command.tilt_command.elements[0].position, -M_PI), M_PI) * 180 / M_PI;
+        min(max(tilt.elements[0].position, -M_PI), M_PI) * 180 / M_PI;
     camera_head["tilt"]["speed"] =
-        min(max(static_cast<double>(command.tilt_command.elements[0].speed), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
     camera_head["camera"]["exposure"] =
-        min(max(static_cast<double>(command.camera.exposure), 0.0), 1.0) * 15;
+        min(max(static_cast<double>(head.camera.exposure), 0.0), 1.0) * 15;
     camera_head["camera"]["brightness"] =
-        min(max(static_cast<double>(command.camera.brightness), 0.0), 1.0) * 100;
+        min(max(static_cast<double>(head.camera.brightness), 0.0), 1.0) * 100;
     camera_head["camera"]["focus"] =
-        min(max(static_cast<double>(command.camera.focus), 0.0), 1.0) * 100;
+        min(max(static_cast<double>(head.camera.focus), 0.0), 1.0) * 100;
     camera_head["camera"]["saturation"] =
-        min(max(static_cast<double>(command.camera.saturation), 0.0), 1.0) * 100;
+        min(max(static_cast<double>(head.camera.saturation), 0.0), 1.0) * 100;
     camera_head["camera"]["sharpness"] =
-        min(max(static_cast<double>(command.camera.sharpness), 0.0), 1.0) * 100;
-    camera_head["camera"]["zoom"]["ratio"] = command.camera.zoom.ratio;
+        min(max(static_cast<double>(head.camera.sharpness), 0.0), 1.0) * 100;
+    camera_head["camera"]["zoom"]["ratio"] = head.camera.zoom.ratio;
     camera_head["camera"]["zoom"]["speed"] =
-        min(max(static_cast<double>(command.camera.zoom.speed), -1.0), 1.0) * 100;
+        min(max(static_cast<double>(head.camera.zoom.speed), -1.0), 1.0) * 100;
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
 
     Json::FastWriter fast;
@@ -140,7 +141,7 @@ Time CommandAndStateMessageParser::getTimeUsage(string address)
     return Time::fromSeconds(time);
 }
 
-RovControl CommandAndStateMessageParser::getVehicleStates(string address)
+RevolutionControl CommandAndStateMessageParser::getRevolutionControlStates(string address)
 {
     auto msg_setpoint =
         mJData["devices"][address]["control"]["setpoint"]["pose"]["localFrame"];
@@ -148,6 +149,18 @@ RovControl CommandAndStateMessageParser::getVehicleStates(string address)
     double setpoint_y = msg_setpoint["y"].asDouble();
     double setpoint_z = msg_setpoint["z"].asDouble();
     double setpoint_yaw = msg_setpoint["yaw"].asDouble() * M_PI / 180;
+
+    RevolutionControl control;
+    control.position.x() = setpoint_x;
+    control.position.y() = setpoint_y;
+    control.position.z() = setpoint_z;
+    control.orientation = Quaterniond(AngleAxisd(setpoint_yaw, Vector3d::UnitZ()));
+
+    return control;
+}
+
+RevolutionBodyStates CommandAndStateMessageParser::getRevolutionBodyStates(string address)
+{
     auto local_frame =
         mJData["devices"][address]["control"]["current"]["pose"]["localFrame"];
     double state_x = local_frame["x"].asDouble();
@@ -155,19 +168,90 @@ RovControl CommandAndStateMessageParser::getVehicleStates(string address)
     double state_z = local_frame["z"].asDouble();
     double state_yaw = local_frame["yaw"].asDouble() * M_PI / 180;
 
-    RovControl control;
-    control.vehicle_setpoint.position.x() = setpoint_x;
-    control.vehicle_setpoint.position.y() = setpoint_y;
-    control.vehicle_setpoint.position.z() = setpoint_z;
-    control.vehicle_setpoint.orientation =
-        Quaterniond(AngleAxisd(setpoint_yaw, Vector3d::UnitZ()));
-    control.state_estimator.position.x() = state_x;
-    control.state_estimator.position.y() = state_y;
-    control.state_estimator.position.z() = state_z;
-    control.state_estimator.orientation =
-        Quaterniond(AngleAxisd(state_yaw, Vector3d::UnitZ()));
+    RevolutionBodyStates control;
+    control.position.x() = state_x;
+    control.position.y() = state_y;
+    control.position.z() = state_z;
+    control.orientation = Quaterniond(AngleAxisd(state_yaw, Vector3d::UnitZ()));
 
     return control;
+}
+
+PoweredReelMotorStates CommandAndStateMessageParser::getPoweredReelMotorState(
+    string address)
+{
+    JointState state;
+    state.raw = mJData["devices"][address]["motor1Diagnostics"]["pwm"].asFloat() / 100;
+    state.effort = mJData["devices"][address]["motor1Diagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["motor1Diagnostics"]["rpm"].asFloat() * 2 * M_PI / 60;
+    PoweredReelMotorStates powered;
+    powered.elements.push_back(state);
+    state.raw = mJData["devices"][address]["motor2Diagnostics"]["pwm"].asFloat() / 100;
+    state.effort = mJData["devices"][address]["motor2Diagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["motor2Diagnostics"]["rpm"].asFloat() * 2 * M_PI / 60;
+    powered.elements.push_back(state);
+
+    return powered;
+}
+
+RevolutionMotorStates CommandAndStateMessageParser::getRevolutionMotorStates(
+    string address)
+{
+    JointState state;
+    state.raw =
+        mJData["devices"][address]["frontRightMotorDiagnostics"]["pwm"].asFloat() / 100;
+    state.effort =
+        mJData["devices"][address]["frontRightMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["frontRightMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    RevolutionMotorStates revolution;
+    revolution.elements.push_back(state);
+    state.raw =
+        mJData["devices"][address]["frontLeftMotorDiagnostics"]["pwm"].asFloat() / 100;
+    state.effort =
+        mJData["devices"][address]["frontLeftMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["frontLeftMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    revolution.elements.push_back(state);
+    state.raw =
+        mJData["devices"][address]["rearRightMotorDiagnostics"]["pwm"].asFloat() / 100;
+    state.effort =
+        mJData["devices"][address]["rearRightMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["rearRightMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    revolution.elements.push_back(state);
+    state.raw =
+        mJData["devices"][address]["rearLeftMotorDiagnostics"]["pwm"].asFloat() / 100;
+    state.effort =
+        mJData["devices"][address]["rearLeftMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["rearLeftMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    revolution.elements.push_back(state);
+    state.raw =
+        mJData["devices"][address]["verticalRightMotorDiagnostics"]["pwm"].asFloat() /
+        100;
+    state.effort =
+        mJData["devices"][address]["verticalRightMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["verticalRightMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    revolution.elements.push_back(state);
+    state.raw =
+        mJData["devices"][address]["verticalLeftMotorDiagnostics"]["pwm"].asFloat() / 100;
+    state.effort =
+        mJData["devices"][address]["verticalLeftMotorDiagnostics"]["current"].asDouble();
+    state.speed =
+        mJData["devices"][address]["verticalLeftMotorDiagnostics"]["rpm"].asFloat() * 2 *
+        M_PI / 60;
+    revolution.elements.push_back(state);
+
+    return revolution;
 }
 
 BatteryStatus CommandAndStateMessageParser::getBatteryStates(string address,
@@ -179,69 +263,43 @@ BatteryStatus CommandAndStateMessageParser::getBatteryStates(string address,
     return battery;
 }
 
-MotorDiagnostics CommandAndStateMessageParser::getMotorStates(string address,
-    string motor_side)
-{
-    MotorDiagnostics motor;
-    motor.overcurrent = mJData["devices"][address][motor_side]["overcurrent"].asBool();
-    vector<float> vector_pwm_motor;
-    vector_pwm_motor.push_back(
-        mJData["devices"][address][motor_side]["pwm"].asFloat() / 100);
-    motor.motor = samples::Joints::Raw(vector_pwm_motor);
-    vector<float> vector_current_motor;
-    vector_current_motor.push_back(
-        mJData["devices"][address][motor_side]["current"].asDouble());
-    motor.motor = samples::Joints::Efforts(vector_current_motor);
-    vector<float> vector_rad_motor;
-    vector_rad_motor.push_back(
-        mJData["devices"][address][motor_side]["rpm"].asFloat() * 2 * M_PI / 60);
-    motor.motor = samples::Joints::Speeds(vector_rad_motor);
-
-    return motor;
-}
-
-Grabber CommandAndStateMessageParser::getGrabberMotorStates(string address)
+Grabber CommandAndStateMessageParser::getGrabberMotorOvercurrentStates(string address)
 {
     Grabber grabber;
-    MotorDiagnostics open_close_motor;
-    open_close_motor.overcurrent =
+    grabber.open_close_motor_overcurrent =
         mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["overcurrent"]
             .asBool();
-    vector<float> vector_open_pwm_motor;
-    vector_open_pwm_motor.push_back(
-        mJData["devices"]["openCloseMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100);
-    open_close_motor.motor = samples::Joints::Raw(vector_open_pwm_motor);
-    vector<float> vector_open_current_motor;
-    vector_open_current_motor.push_back(
-        mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["current"]
-            .asDouble());
-    open_close_motor.motor = samples::Joints::Efforts(vector_open_current_motor);
-    vector<float> vector_open_rad_motor;
-    vector_open_rad_motor.push_back(
-        mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["rpm"]
-            .asFloat() *
-        2 * M_PI / 60);
-    open_close_motor.motor = samples::Joints::Speeds(vector_open_rad_motor);
-    grabber.open_close_diagnostics = open_close_motor;
-    MotorDiagnostics rotate_motor;
-    rotate_motor.overcurrent =
+    grabber.rotate_overcurrent =
         mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["overcurrent"]
             .asBool();
-    vector<float> vector_rotate_pwm_motor;
-    vector_rotate_pwm_motor.push_back(
-        mJData["devices"]["rollMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100);
-    rotate_motor.motor = samples::Joints::Raw(vector_rotate_pwm_motor);
-    vector<float> vector_rotate_current_motor;
-    vector_rotate_current_motor.push_back(
-        mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["current"]
-            .asDouble());
-    rotate_motor.motor = samples::Joints::Efforts(vector_rotate_current_motor);
-    vector<float> vector_rotate_rad_motor;
-    vector_rotate_rad_motor.push_back(
+
+    return grabber;
+}
+
+GrabberMotorStates CommandAndStateMessageParser::getGrabberMotorStates(string address)
+{
+    GrabberMotorStates grabber;
+    JointState open_close_joint_state;
+    open_close_joint_state.raw =
+        mJData["devices"]["openCloseMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100;
+    open_close_joint_state.speed =
+        mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["rpm"]
+            .asFloat() *
+        2 * M_PI / 60;
+    open_close_joint_state.effort =
+        mJData["devices"][address]["grabber"]["openCloseMotorDiagnostics"]["current"]
+            .asDouble();
+    grabber.elements.push_back(open_close_joint_state);
+    JointState rotate_joint;
+    rotate_joint.raw =
+        mJData["devices"]["rollMotorDiagnostics"]["grabber"]["pwm"].asFloat() / 100;
+    rotate_joint.speed =
         mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["rpm"].asFloat() *
-        2 * M_PI / 60);
-    rotate_motor.motor = samples::Joints::Speeds(vector_rotate_rad_motor);
-    grabber.rotate_diagnostics = rotate_motor;
+        2 * M_PI / 60;
+    rotate_joint.effort =
+        mJData["devices"][address]["grabber"]["rollMotorDiagnostics"]["current"]
+            .asDouble();
+    grabber.elements.push_back(rotate_joint);
 
     return grabber;
 }
@@ -252,37 +310,9 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadStates(string address)
     camera_head.light =
         mJData["devices"][address]["cameraHead"]["lights"].asDouble() / 100;
     camera_head.laser = mJData["devices"][address]["cameraHead"]["lasers"].asBool();
-    vector<float> tilt_speed_command;
-    tilt_speed_command.push_back(
-        mJData["devices"][address]["cameraHead"]["tilt"]["speed"].asFloat() / 100);
-    camera_head.tilt_command = samples::Joints::Speeds(tilt_speed_command);
-    vector<double> tilt_position_command;
-    tilt_speed_command.push_back(
-        mJData["devices"][address]["cameraHead"]["tilt"]["position"].asFloat() * M_PI /
-        180);
-    camera_head.tilt_command = samples::Joints::Positions(tilt_position_command);
-    MotorDiagnostics tilt_motor;
-    tilt_motor.overcurrent =
+    camera_head.motor_overcurrent =
         mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["overcurrent"]
             .asBool();
-    vector<float> vector_pwm_motor;
-    vector_pwm_motor.push_back(
-        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["pwm"]
-            .asFloat() /
-        100);
-    tilt_motor.motor = samples::Joints::Raw(vector_pwm_motor);
-    vector<float> vector_current_motor;
-    vector_current_motor.push_back(
-        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["current"]
-            .asDouble());
-    tilt_motor.motor = samples::Joints::Efforts(vector_current_motor);
-    vector<float> vector_rad_motor;
-    vector_rad_motor.push_back(
-        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["rpm"]
-            .asFloat() *
-        2 * M_PI / 60);
-    tilt_motor.motor = samples::Joints::Speeds(vector_rad_motor);
-    camera_head.tilt_motor_diagnostics = tilt_motor;
     camera_head.camera.brightness =
         mJData["devices"][address]["cameraHead"]["camera"]["brightness"].asFloat() / 100;
     camera_head.camera.exposure =
@@ -301,6 +331,27 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadStates(string address)
     camera_head.camera.zoom.speed =
         mJData["devices"][address]["cameraHead"]["camera"]["zoom"]["speed"].asFloat() /
         100;
+
+    return camera_head;
+}
+
+TiltCameraHeadMotorState CommandAndStateMessageParser::getCameraHeadMotorStates(
+    string address)
+{
+    TiltCameraHeadMotorState camera_head;
+    JointState tilt_motor;
+    tilt_motor.raw =
+        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["pwm"]
+            .asFloat() /
+        100;
+    tilt_motor.speed =
+        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["rpm"]
+            .asFloat() *
+        2 * M_PI / 60;
+    tilt_motor.effort =
+        mJData["devices"][address]["cameraHead"]["tiltMotorDiagnostics"]["current"]
+            .asDouble();
+    camera_head.elements.push_back(tilt_motor);
 
     return camera_head;
 }
@@ -343,11 +394,4 @@ bool CommandAndStateMessageParser::isACPowerConnected(string address)
 bool CommandAndStateMessageParser::isEStopEnabled(string address)
 {
     return mJData["devices"][address]["eStop"].asBool();
-}
-
-samples::Joints CommandAndStateMessageParser::getPoweredReelSpeed(string address)
-{
-    vector<float> vector_speed;
-    vector_speed.push_back(mJData["devices"][address]["speed"].asFloat() / 100);
-    return samples::Joints::Speeds(vector_speed);
 }

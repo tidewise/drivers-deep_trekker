@@ -8,9 +8,9 @@
 #include "stdio.h"
 #include "string.h"
 #include "json/json.h"
+#include <algorithm>
 #include <base/Time.hpp>
 #include <memory>
-#include <algorithm>
 
 namespace deep_trekker {
 
@@ -30,15 +30,19 @@ namespace deep_trekker {
             GrabberCommand command);
         std::string parseTiltCameraHeadCommandMessage(std::string api_version,
             std::string address,
-            TiltCameraHeadCommand command);
+            CameraHeadCommand head,
+            TiltCameraHeadCommand tilt);
         base::Time getTimeUsage(std::string address);
-        RovControl getVehicleStates(std::string address);
-        Grabber getGrabberMotorStates(std::string address);
+        RevolutionControl getRevolutionControlStates(std::string address);
+        RevolutionBodyStates getRevolutionBodyStates(std::string address);
+        Grabber getGrabberMotorOvercurrentStates(std::string address);
+        GrabberMotorStates getGrabberMotorStates(std::string address);
+        PoweredReelMotorStates getPoweredReelMotorState(std::string address);
+        RevolutionMotorStates getRevolutionMotorStates(std::string address);
         TiltCameraHead getCameraHeadStates(std::string address);
-        MotorDiagnostics getMotorStates(std::string address, std::string motor_side);
+        TiltCameraHeadMotorState getCameraHeadMotorStates(std::string address);
         power_base::BatteryStatus getBatteryStates(std::string address,
             std::string battery_side);
-        base::samples::Joints getPoweredReelSpeed(std::string address);
         double getLightIntensity(std::string address);
         double getCpuTemperature(std::string address);
         double getTetherLenght(std::string address);

@@ -76,7 +76,7 @@ TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
     PoweredReelControlCommand command;
     vector<float> speed_vector;
     speed_vector.push_back(0.21);
-    command.speed = samples::Joints::Speeds(speed_vector);
+    command = samples::Joints::Speeds(speed_vector);
     string message = parser.parsePoweredReelCommandMessage(api_version, address, command);
 
     Json::Value json_value;
@@ -92,19 +92,18 @@ TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
     ASSERT_EQ(json_value["payload"]["devices"][address]["reelFoward"], true);
     ASSERT_EQ(json_value["payload"]["devices"][address]["reelReverse"], false);
     ASSERT_EQ(json_value["payload"]["devices"][address]["speed"].asFloat(),
-        command.speed.elements[0].speed * 100);
+        command.elements[0].speed * 100);
 }
 
 TEST_F(MessageParserTest, it_parse_grabber_command_message)
 {
     auto parser = getMessageParser();
     GrabberCommand command;
-    vector<float> power_open_command_vector;
-    power_open_command_vector.push_back(0.28);
-    command.open_close = samples::Joints::Raw(power_open_command_vector);
-    vector<float> power_rotate_command_vector;
-    power_rotate_command_vector.push_back(0.4);
-    command.rotate = samples::Joints::Raw(power_rotate_command_vector);
+    JointState state;
+    state.raw = 0.28;
+    command.elements.push_back(state);
+    state.raw = 0.4;
+    command.elements.push_back(state);
     string message = parser.parseGrabberCommandMessage(api_version, address, command);
 
     Json::Value json_value;
@@ -118,15 +117,15 @@ TEST_F(MessageParserTest, it_parse_grabber_command_message)
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
     ASSERT_EQ(json_value["payload"]["devices"][address]["grabber"]["openClose"].asFloat(),
-        command.open_close.elements[0].raw * 100);
+        command.elements[0].raw * 100);
     ASSERT_EQ(json_value["payload"]["devices"][address]["grabber"]["rotate"].asFloat(),
-        command.rotate.elements[0].raw * 100);
+        command.elements[1].raw * 100);
 }
 
 TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
 {
     auto parser = getMessageParser();
-    TiltCameraHeadCommand command;
+    CameraHeadCommand command;
     command.laser = true;
     command.light = 0.9;
     command.camera.brightness = 0.3;
@@ -136,14 +135,13 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     command.camera.sharpness = 1;
     command.camera.zoom.ratio = 0.5;
     command.camera.zoom.speed = 0.75;
-    vector<double> position_command_vector;
-    position_command_vector.push_back(M_PI);
-    command.tilt_command = samples::Joints::Positions(position_command_vector);
-    vector<float> velocity_command_vector;
-    velocity_command_vector.push_back(-0.4);
-    command.tilt_command = samples::Joints::Speeds(velocity_command_vector);
+    TiltCameraHeadCommand tilt;
+    JointState joint_state;
+    joint_state.position = M_PI;
+    joint_state.speed = -0.4;
+    tilt.elements.push_back(joint_state);
     string message =
-        parser.parseTiltCameraHeadCommandMessage(api_version, address, command);
+        parser.parseTiltCameraHeadCommandMessage(api_version, address, command, tilt);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -159,9 +157,9 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     ASSERT_EQ(camera_head["lights"].asDouble(), command.light * 100);
     ASSERT_EQ(camera_head["lasers"].asBool(), command.laser);
     ASSERT_EQ(camera_head["tilt"]["position"].asDouble(),
-        command.tilt_command.elements[0].position * 180 / M_PI);
+        tilt.elements[0].position * 180 / M_PI);
     ASSERT_EQ(camera_head["tilt"]["speed"].asFloat(),
-        command.tilt_command.elements[0].speed * 100);
+        tilt.elements[0].speed * 100);
     ASSERT_EQ(camera_head["camera"]["exposure"].asFloat(), command.camera.exposure * 15);
     ASSERT_EQ(camera_head["camera"]["brightness"].asFloat(),
         command.camera.brightness * 100);

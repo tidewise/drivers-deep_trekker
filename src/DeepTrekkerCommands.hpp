@@ -37,40 +37,27 @@ namespace deep_trekker {
      *  light:
      *   - min: 0
      *   - max: 1
-     *  tilt_command (position):
-     *   - min: -pi
-     *   - max: +pi
-     *  tilt_command (velocity):
-     *   - min: -1
-     *   - max: +1
      */
-    struct TiltCameraHeadCommand {
+    struct CameraHeadCommand {
         bool laser;
         double light;
-        base::samples::Joints tilt_command;
         TamronHarrierZoomCameraCommand camera;
     };
 
     /**
-     *  open_close (unit: motor power):
-     *   - < 0: close grabber claw (min: -1)
-     *   - == 0: motor off
-     *   - > 0: open grabber claw (max: +1)
-     *  rotate (unit: motor power):
-     *   - < 0: rotate left (min: -1)
-     *   - == 0: motor off
-     *   - > 0: rotate right (max: +1)
+     *  tilt_command (position joint):
+     *   - min: -pi
+     *   - max: +pi
+     *  tilt_command (speed joint):
+     *   - min: -1
+     *   - max: +1
      */
-    struct GrabberCommand {
-        base::samples::Joints open_close;
-        base::samples::Joints rotate;
-    };
+    typedef base::samples::Joints TiltCameraHeadCommand;
 
     /**
-     *  -light:
+     *  light:
      *   - min: 0
      *   - max: 1
-     *  -Command in local frame
      */
     struct PositionAndLightCommand {
         double light;
@@ -78,13 +65,28 @@ namespace deep_trekker {
     };
 
     /**
-     *  speed:
-     *   - min: -1 (revert/retract)
-     *   - max: +1 (forward)
+     *  motors:
+     *   open_close (unit: motor power):
+     *    - < 0: close grabber claw (min: -1)
+     *    - == 0: motor off
+     *    - > 0: open grabber claw (max: +1)
+     *   rotate (unit: motor power):
+     *    - < 0: rotate left (min: -1)
+     *    - == 0: motor off
+     *    - > 0: rotate right (max: +1)
+     *   elements:
+     *    - [0] open_close joint
+     *    - [1] rotate joint
      */
-    struct PoweredReelControlCommand {
-        base::samples::Joints speed;
-    };
+    typedef base::samples::Joints GrabberCommand;
+
+    /**
+     *  motor:
+     *   speed joint:
+     *    - min: -1 (revert/retract)
+     *    - max: +1 (forward)
+     */
+    typedef base::samples::Joints PoweredReelControlCommand;
 
 } // namespace deep_trekker
 
