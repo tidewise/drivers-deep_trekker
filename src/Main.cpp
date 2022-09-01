@@ -452,12 +452,12 @@ bool initialHandShakeFinalized(
         sendSessionCheck(websocket, local_peer_id);
         return false;
     }
-    else if (decoder.checkSessionList())
+    if (decoder.checkSessionList())
     {
         joinSession(websocket, decoder, local_peer_id);
         return false;
     }
-    else if (decoder.getClientId() == local_peer_id)
+    if (decoder.getClientId() == local_peer_id)
     {
         return true;
     }
