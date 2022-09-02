@@ -39,6 +39,7 @@ namespace deep_trekker {
      *   - max: 1
      */
     struct CameraHeadCommand {
+        base::Time time;
         bool laser;
         double light;
         TamronHarrierZoomCameraCommand camera;
@@ -60,6 +61,7 @@ namespace deep_trekker {
      *   - max: 1
      */
     struct PositionAndLightCommand {
+        base::Time time;
         double light;
         base::commands::LinearAngular6DCommand vehicle_setpoint;
     };
