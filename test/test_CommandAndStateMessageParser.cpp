@@ -73,7 +73,7 @@ TEST_F(MessageParserTest, it_parse_revolution_command_message)
 TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
 {
     auto parser = getMessageParser();
-    PoweredReelControlCommand command;
+    base::samples::Joints command;
     vector<float> speed_vector;
     speed_vector.push_back(0.21);
     command = samples::Joints::Speeds(speed_vector);
@@ -98,7 +98,7 @@ TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
 TEST_F(MessageParserTest, it_parse_grabber_command_message)
 {
     auto parser = getMessageParser();
-    GrabberCommand command;
+    base::samples::Joints command;
     JointState state;
     state.raw = 0.28;
     command.elements.push_back(state);
@@ -135,7 +135,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     command.camera.sharpness = 1;
     command.camera.zoom.ratio = 0.5;
     command.camera.zoom.speed = 0.75;
-    TiltCameraHeadCommand tilt;
+    base::samples::Joints tilt;
     JointState joint_state;
     joint_state.position = M_PI;
     joint_state.speed = -0.4;

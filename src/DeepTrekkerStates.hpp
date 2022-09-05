@@ -71,7 +71,7 @@ namespace deep_trekker {
      *    - min: -1
      *    - max: +1
      */
-    typedef base::samples::Joints TiltCameraHeadMotorState;
+    typedef base::samples::Joints TiltCameraHeadMotorStates;
 
     /**
      *  tether_distance (payed out tether distance, given in cm)
@@ -134,6 +134,7 @@ namespace deep_trekker {
 
     /** Setpoint and state in local frame */
     typedef base::samples::RigidBodyState RevolutionControl;
+    /** Setpoint and state in local frame */
     typedef base::samples::RigidBodyState RevolutionBodyStates;
 
     /**
@@ -151,7 +152,7 @@ namespace deep_trekker {
         bool vertical_right_motor_overcurrent;
         bool vertical_left_motor_overcurrent;
         Grabber grabber;
-        RevolutionControl vehicle_control;
+        base::samples::RigidBodyState vehicle_control;
         TiltCameraHead camera_head;
         base::Time usage_time;
         power_base::BatteryStatus left_battery;

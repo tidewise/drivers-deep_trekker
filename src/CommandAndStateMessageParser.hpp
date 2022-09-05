@@ -24,25 +24,44 @@ namespace deep_trekker {
             PositionAndLightCommand command);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
-            PoweredReelControlCommand command);
+            base::samples::Joints command);
         std::string parseGrabberCommandMessage(std::string api_version,
             std::string address,
-            GrabberCommand command);
+            base::samples::Joints command);
         std::string parseTiltCameraHeadCommandMessage(std::string api_version,
             std::string address,
             CameraHeadCommand head,
-            TiltCameraHeadCommand tilt);
+            base::samples::Joints tilt);
         base::Time getTimeUsage(std::string address);
-        RevolutionControl getRevolutionControlStates(std::string address);
-        RevolutionBodyStates getRevolutionBodyStates(std::string address);
         Grabber getGrabberMotorOvercurrentStates(std::string address);
-        GrabberMotorStates getGrabberMotorStates(std::string address);
-        PoweredReelMotorStates getPoweredReelMotorState(std::string address);
-        RevolutionMotorStates getRevolutionMotorStates(std::string address);
-        TiltCameraHead getCameraHeadStates(std::string address);
-        TiltCameraHeadMotorState getCameraHeadMotorStates(std::string address);
         power_base::BatteryStatus getBatteryStates(std::string address,
             std::string battery_side);
+        TiltCameraHead getCameraHeadStates(std::string address);
+        /**
+         * @see RevolutionControl
+         */
+        base::samples::RigidBodyState getRevolutionControlStates(std::string address);
+        /**
+         * @see RevolutionBodyStates
+         */
+        base::samples::RigidBodyState getRevolutionBodyStates(std::string address);
+        /**
+         * @see GrabberMotorStates
+         */
+        base::samples::Joints getGrabberMotorStates(std::string address);
+        /**
+         * @see PoweredReelMotorStates
+         */
+        base::samples::Joints getPoweredReelMotorState(std::string address);
+        /**
+         * @see RevolutionMotorStates
+         */
+        base::samples::Joints getRevolutionMotorStates(std::string address);
+        /**
+         * @see TiltCameraHeadMotorStates
+         */
+        base::samples::Joints getCameraHeadMotorStates(std::string address);
+        base::JointState motorDiagnosticsToJointState(Json::Value value);
         double getLightIntensity(std::string address);
         double getCpuTemperature(std::string address);
         double getTetherLenght(std::string address);
