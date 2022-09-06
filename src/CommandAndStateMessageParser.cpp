@@ -306,6 +306,11 @@ JointState CommandAndStateMessageParser::motorDiagnosticsToJointState(Json::Valu
     return joint_state;
 }
 
+bool CommandAndStateMessageParser::getMotorOvercurrentStates(string address, string motor_side)
+{
+    return mJData["payload"]["devices"][address][motor_side]["overcurrent"].asBool();
+}
+
 double CommandAndStateMessageParser::getLightIntensity(string address)
 {
     return mJData["payload"]["devices"][address]["auxLights"].asDouble() / 100;

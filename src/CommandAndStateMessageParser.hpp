@@ -65,6 +65,8 @@ namespace deep_trekker {
         double getLightIntensity(std::string address);
         double getCpuTemperature(std::string address);
         double getTetherLenght(std::string address);
+        bool getMotorOvercurrentStates(std::string address,
+            std::string motor_side);
         bool isACPowerConnected(std::string address);
         bool isEStopEnabled(std::string address);
         bool isCalibrated(std::string address);
