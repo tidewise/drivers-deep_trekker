@@ -1,7 +1,13 @@
-rock_library(dummy_project
-    SOURCES Dummy.cpp
-    HEADERS Dummy.hpp)
+rock_library(deep_trekker
+    SOURCES RustySignalMessageDecoder.cpp
+            SignalRMessageDecoder.cpp
+            HttpPostRequestReplyMessageDecoder.cpp
+    HEADERS RustySignalMessageDecoder.hpp
+            SignalRMessageDecoder.hpp
+            HttpPostRequestReplyMessageDecoder.hpp
+    DEPS_PKGCONFIG jsoncpp base-types)
 
-rock_executable(dummy_project_bin Main.cpp
-    DEPS dummy_project)
+rock_executable(deep_trekker_bin Main.cpp
+    DEPS deep_trekker
+    DEPS_PKGCONFIG libdatachannel curlpp)
 
