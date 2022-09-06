@@ -14,13 +14,10 @@ bool SignalRMessageDecoder::parseJSONMessage(char const* data, string& errors)
     return mReader->parse(data, data + strlen(data), &mJData, &errors);
 }
 
-void SignalRMessageDecoder::validateFieldPresent(
-    Json::Value const& value,
-    string const& fieldName
-)
+void SignalRMessageDecoder::validateFieldPresent(Json::Value const& value,
+    string const& fieldName)
 {
-    if (!value.isMember(fieldName))
-    {
+    if (!value.isMember(fieldName)) {
         throw invalid_argument("message does not contain the " + fieldName + " field");
     }
 }
@@ -47,7 +44,7 @@ bool SignalRMessageDecoder::checkSessionClosed()
 
 bool SignalRMessageDecoder::checkSessionList()
 {
-     return mJData[0].isMember("session_id");
+    return mJData[0].isMember("session_id");
 }
 
 string SignalRMessageDecoder::getClientId()

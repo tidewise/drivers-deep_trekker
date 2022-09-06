@@ -6,12 +6,10 @@
 #include "json/json.h"
 #include <memory>
 
-namespace deep_trekker
-{
+namespace deep_trekker {
 
-    class SignalRMessageDecoder
-    {
-      public:
+    class SignalRMessageDecoder {
+    public:
         SignalRMessageDecoder();
 
         std::string getActionType();
@@ -29,7 +27,7 @@ namespace deep_trekker
         bool parseJSONMessage(char const* data, std::string& errors);
         void validateFieldPresent(Json::Value const& value, std::string const& fieldName);
 
-      private:
+    private:
         Json::Value mJData;
         Json::CharReaderBuilder mRBuilder;
         std::unique_ptr<Json::CharReader> const mReader;
