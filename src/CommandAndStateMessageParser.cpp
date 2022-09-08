@@ -114,7 +114,6 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
     camera_head["lights"] = min(max(head.light, 0.0), 1.0) * 100;
     camera_head["lasers"] = head.laser;
-    camera_head["tilt"]["position"] = min(max(tilt.elements[0].position, -M_PI), M_PI);
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
     camera_head["camera"]["exposure"] =

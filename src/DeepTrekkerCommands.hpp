@@ -46,9 +46,6 @@ namespace deep_trekker {
     };
 
     /**
-     *  tilt_command (position joint):
-     *   - min: -pi
-     *   - max: +pi
      *  tilt_command (speed joint):
      *   - min: -1
      *   - max: +1

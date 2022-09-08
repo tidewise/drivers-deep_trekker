@@ -156,7 +156,6 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
     ASSERT_EQ(camera_head["lights"].asDouble(), command.light * 100);
     ASSERT_EQ(camera_head["lasers"].asBool(), command.laser);
-    ASSERT_EQ(camera_head["tilt"]["position"].asDouble(), tilt.elements[0].position);
     ASSERT_EQ(camera_head["tilt"]["speed"].asFloat(), tilt.elements[0].speed * 100);
     ASSERT_EQ(camera_head["camera"]["exposure"].asFloat(), command.camera.exposure * 15);
     ASSERT_EQ(camera_head["camera"]["brightness"].asFloat(),
