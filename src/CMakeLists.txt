@@ -12,6 +12,6 @@ rock_library(deep_trekker
     DEPS_PKGCONFIG base-types power_base jsoncpp)
 
 
-rock_executable(deep_trekker_bin Main.cpp
+rock_executable(signaling_bridge Main.cpp
     DEPS deep_trekker
     DEPS_PKGCONFIG libdatachannel curlpp)
