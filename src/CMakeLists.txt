@@ -15,3 +15,6 @@ rock_library(deep_trekker
 rock_executable(signaling_bridge Main.cpp
     DEPS deep_trekker
     DEPS_PKGCONFIG libdatachannel curlpp)
+
+# Needed by libdatachannel
+set_source_files_properties( Main.cpp PROPERTIES COMPILE_FLAGS "-std=c++17" )
