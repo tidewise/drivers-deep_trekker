@@ -11,5 +11,6 @@
   <depend package="tools/libdatachannel" />
   <depend package="libcurlpp" />
   <depend package="jsoncpp" />
+  <depend package="drivers/orogen/power_base" />
   
 </package>

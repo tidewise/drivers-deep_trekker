@@ -14,13 +14,10 @@ bool RustySignalMessageDecoder::parseJSONMessage(char const* data, string& error
     return mReader->parse(data, data + strlen(data), &mJData, &errors);
 }
 
-void RustySignalMessageDecoder::validateFieldPresent(
-    Json::Value const& value,
-    string const& fieldName
-)
+void RustySignalMessageDecoder::validateFieldPresent(Json::Value const& value,
+    string const& fieldName)
 {
-    if (!value.isMember(fieldName))
-    {
+    if (!value.isMember(fieldName)) {
         throw invalid_argument("message does not contain the " + fieldName + " field");
     }
 }

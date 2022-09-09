@@ -1,13 +1,20 @@
 rock_library(deep_trekker
-    SOURCES RustySignalMessageDecoder.cpp
+    SOURCES CommandAndStateMessageParser.cpp
+            RustySignalMessageDecoder.cpp
             SignalRMessageDecoder.cpp
             HttpPostRequestReplyMessageDecoder.cpp
-    HEADERS RustySignalMessageDecoder.hpp
+    HEADERS CommandAndStateMessageParser.hpp
+            DeepTrekkerCommands.hpp
+            DeepTrekkerStates.hpp
+            RustySignalMessageDecoder.hpp
             SignalRMessageDecoder.hpp
             HttpPostRequestReplyMessageDecoder.hpp
-    DEPS_PKGCONFIG jsoncpp base-types)
+    DEPS_PKGCONFIG base-types power_base jsoncpp)
 
-rock_executable(deep_trekker_bin Main.cpp
+
+rock_executable(signaling_bridge Main.cpp
     DEPS deep_trekker
     DEPS_PKGCONFIG libdatachannel curlpp)
 
+# Needed by libdatachannel
+set_source_files_properties( Main.cpp PROPERTIES COMPILE_FLAGS "-std=c++17" )
