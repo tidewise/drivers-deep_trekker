@@ -3,12 +3,14 @@ rock_library(deep_trekker
             RustySignalMessageDecoder.cpp
             SignalRMessageDecoder.cpp
             HttpPostRequestReplyMessageDecoder.cpp
+            BasePoseEstimation.cpp
     HEADERS CommandAndStateMessageParser.hpp
             DeepTrekkerCommands.hpp
             DeepTrekkerStates.hpp
             RustySignalMessageDecoder.hpp
             SignalRMessageDecoder.hpp
             HttpPostRequestReplyMessageDecoder.hpp
+            BasePoseEstimation.hpp
     DEPS_PKGCONFIG base-types power_base jsoncpp)
 
 
