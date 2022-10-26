@@ -8,6 +8,13 @@
 
 namespace deep_trekker {
 
+    enum MotionControllerType
+    {
+        position,
+        velocity,
+        acceleration
+    };
+    
     struct DevicesMacAddress {
         std::string revolution;
         std::string manual_reel;

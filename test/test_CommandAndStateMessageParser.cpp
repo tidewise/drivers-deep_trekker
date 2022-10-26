@@ -41,14 +41,14 @@ TEST_F(MessageParserTest, it_parse_get_command_message)
     ASSERT_EQ(json_value["payload"], expected_payload["payload"]);
 }
 
-TEST_F(MessageParserTest, it_parse_revolution_command_message)
+TEST_F(MessageParserTest, it_parse_position_revolution_command_message)
 {
     auto parser = getMessageParser();
-    PositionAndLightCommand command;
+    MotionAndLightCommand command;
     command.light = 0.55;
     command.vehicle_setpoint.linear = Eigen::Vector3d(2.1, 1.3, 6.1);
     command.vehicle_setpoint.angular = Eigen::Vector3d(0, 0, 1.2);
-    string message = parser.parseRevolutionCommandMessage(api_version, address, command);
+    string message = parser.parsePositionRevolutionCommandMessage(api_version, address, command);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -64,6 +64,62 @@ TEST_F(MessageParserTest, it_parse_revolution_command_message)
         command.light * 100);
     auto value = json_value["payload"]["devices"][address]["control"]["setpoint"]["pose"]
                            ["localFrame"];
+    ASSERT_EQ(value["x"], command.vehicle_setpoint.linear[0]);
+    ASSERT_EQ(value["y"], command.vehicle_setpoint.linear[1]);
+    ASSERT_EQ(value["z"], command.vehicle_setpoint.linear[2]);
+    ASSERT_EQ(value["yaw"], command.vehicle_setpoint.angular[2]);
+}
+
+TEST_F(MessageParserTest, it_parse_velocity_revolution_command_message)
+{
+    auto parser = getMessageParser();
+    MotionAndLightCommand command;
+    command.light = 0.55;
+    command.vehicle_setpoint.linear = Eigen::Vector3d(2.1, 1.3, 6.1);
+    command.vehicle_setpoint.angular = Eigen::Vector3d(0, 0, 1.2);
+    string message = parser.parseVelocityRevolutionCommandMessage(api_version, address, command);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["auxLights"].asDouble(),
+        command.light * 100);
+    auto value = json_value["payload"]["devices"][address]["control"]["setpoint"]["velocity"];
+    ASSERT_EQ(value["x"], command.vehicle_setpoint.linear[0]);
+    ASSERT_EQ(value["y"], command.vehicle_setpoint.linear[1]);
+    ASSERT_EQ(value["z"], command.vehicle_setpoint.linear[2]);
+    ASSERT_EQ(value["yaw"], command.vehicle_setpoint.angular[2]);
+}
+
+TEST_F(MessageParserTest, it_parse_acceleration_revolution_command_message)
+{
+    auto parser = getMessageParser();
+    MotionAndLightCommand command;
+    command.light = 0.55;
+    command.vehicle_setpoint.linear = Eigen::Vector3d(2.1, 1.3, 6.1);
+    command.vehicle_setpoint.angular = Eigen::Vector3d(0, 0, 1.2);
+    string message = parser.parseAccelerationRevolutionCommandMessage(api_version, address, command);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["auxLights"].asDouble(),
+        command.light * 100);
+    auto value = json_value["payload"]["devices"][address]["control"]["setpoint"]["acceleration"];
     ASSERT_EQ(value["x"], command.vehicle_setpoint.linear[0]);
     ASSERT_EQ(value["y"], command.vehicle_setpoint.linear[1]);
     ASSERT_EQ(value["z"], command.vehicle_setpoint.linear[2]);

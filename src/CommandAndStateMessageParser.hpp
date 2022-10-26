@@ -19,9 +19,15 @@ namespace deep_trekker {
         CommandAndStateMessageParser();
 
         std::string parseGetMessage(std::string api_version);
-        std::string parseRevolutionCommandMessage(std::string api_version,
+        std::string parsePositionRevolutionCommandMessage(std::string api_version,
             std::string address,
-            PositionAndLightCommand command);
+            MotionAndLightCommand command);
+        std::string parseVelocityRevolutionCommandMessage(std::string api_version,
+            std::string address,
+            MotionAndLightCommand command);
+        std::string parseAccelerationRevolutionCommandMessage(std::string api_version,
+            std::string address,
+            MotionAndLightCommand command);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
             base::samples::Joints command);
