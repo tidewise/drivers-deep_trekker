@@ -40,9 +40,10 @@ string CommandAndStateMessageParser::parseGetMessage(string api_version)
     return fast.write(message);
 }
 
-string CommandAndStateMessageParser::parseRevolutionCommandMessage(string api_version,
+string CommandAndStateMessageParser::parsePositionRevolutionCommandMessage(
+    string api_version,
     string address,
-    PositionAndLightCommand command)
+    MotionAndLightCommand command)
 {
     Json::Value message;
     message["apiVersion"] = api_version;
@@ -57,6 +58,49 @@ string CommandAndStateMessageParser::parseRevolutionCommandMessage(string api_ve
     local_frame["yaw"] = command.vehicle_setpoint.angular[2];
     message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"] =
         local_frame;
+
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseVelocityRevolutionCommandMessage(
+    string api_version,
+    string address,
+    MotionAndLightCommand command)
+{
+    Json::Value message;
+    message["apiVersion"] = api_version;
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["auxLights"] =
+        min(max(command.light, 0.0), 1.0) * 100;
+    auto vel = message["payload"]["devices"][address]["control"]["setpoint"]["velocity"];
+    vel["x"] = command.vehicle_setpoint.linear[0];
+    vel["y"] = command.vehicle_setpoint.linear[1];
+    vel["z"] = command.vehicle_setpoint.linear[2];
+    vel["yaw"] = command.vehicle_setpoint.angular[2];
+    message["payload"]["devices"][address]["control"]["setpoint"]["velocity"] = vel;
+
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseAccelerationRevolutionCommandMessage(
+    string api_version,
+    string address,
+    MotionAndLightCommand command)
+{
+    Json::Value message;
+    message["apiVersion"] = api_version;
+    message["method"] = "SET";
+    message["payload"]["devices"][address]["auxLights"] =
+        min(max(command.light, 0.0), 1.0) * 100;
+    auto acc =
+        message["payload"]["devices"][address]["control"]["setpoint"]["acceleration"];
+    acc["x"] = command.vehicle_setpoint.linear[0];
+    acc["y"] = command.vehicle_setpoint.linear[1];
+    acc["z"] = command.vehicle_setpoint.linear[2];
+    acc["yaw"] = command.vehicle_setpoint.angular[2];
+    message["payload"]["devices"][address]["control"]["setpoint"]["acceleration"] = acc;
 
     Json::FastWriter fast;
     return fast.write(message);

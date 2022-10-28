@@ -57,7 +57,7 @@ namespace deep_trekker {
      *   - min: 0
      *   - max: 1
      */
-    struct PositionAndLightCommand {
+    struct MotionAndLightCommand {
         double light;
         base::commands::LinearAngular6DCommand vehicle_setpoint;
     };
