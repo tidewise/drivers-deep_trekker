@@ -68,6 +68,7 @@ try {
     list<string> header;
     header.push_back("Content-Type: application/x-www-form-urlencoded");
     request.setOpt(new curlpp::options::HttpHeader(header));
+    request.setOpt(new curlpp::options::SslVerifyHost(false));
     request.setOpt(new curlpp::options::SslVerifyPeer(false));
     std::ostringstream os;
     curlpp::options::WriteStream ws(&os);
@@ -88,7 +89,9 @@ try {
     signalr_config.iceServers.emplace_back("stun:" + stun_server);
 
     // SignalR websocket
-    auto signalr_websocket = make_shared<rtc::WebSocket>();
+    rtc::WebSocket::Configuration config;
+    config.disableTlsVerification = true;
+    auto signalr_websocket = make_shared<rtc::WebSocket>(config);
     // RustySignal websocket
     auto rusty_websocket = make_shared<rtc::WebSocket>();
 
