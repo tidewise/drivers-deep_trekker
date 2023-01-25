@@ -64,7 +64,7 @@ try {
     string url_https =
         "https://" + local_peer_id + ":5001/sessionHub/negotiate?negotiateVersion=1";
     request.setOpt(new curlpp::options::Url(url_https));
-    request.setOpt(new curlpp::options::Verbose(true));
+    request.setOpt(new curlpp::options::Verbose(false));
     list<string> header;
     header.push_back("Content-Type: application/x-www-form-urlencoded");
     request.setOpt(new curlpp::options::HttpHeader(header));
