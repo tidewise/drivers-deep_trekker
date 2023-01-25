@@ -17,12 +17,7 @@ using namespace deep_trekker;
 using namespace std;
 using namespace rtc;
 using std::shared_ptr;
-using std::weak_ptr;
 
-template <class T> weak_ptr<T> make_weak_ptr(shared_ptr<T> ptr)
-{
-    return ptr;
-}
 void pong(shared_ptr<rtc::WebSocket>& rusty_websocket,
     RustySignalMessageDecoder& decoder,
     string const& local_peer_id);
@@ -245,22 +240,18 @@ catch (exception const& error) {
 
 void rustySendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& json)
 {
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        auto msg = fast.write(json);
-        LOG_DEBUG_S << "rusty::sendJSON " << msg << std::endl;
-        ws->send(msg);
-    }
+    Json::FastWriter fast;
+    auto msg = fast.write(json);
+    LOG_DEBUG_S << "rusty::sendJSON " << msg << std::endl;
+    websocket->send(msg);
 }
 
 void signalRSendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& json)
 {
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        auto msg = fast.write(json);
-        LOG_DEBUG_S << "signalr::sendJSON " << msg << std::endl;
-        ws->send(msg + "\x1e");
-    }
+    Json::FastWriter fast;
+    auto msg = fast.write(json);
+    LOG_DEBUG_S << "signalr::sendJSON " << msg << std::endl;
+    websocket->send(msg + "\x1e");
 }
 
 void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket)
