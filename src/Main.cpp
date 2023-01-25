@@ -43,7 +43,7 @@ void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& rusty_websocket,
     SignalRMessageDecoder& decoder);
 
 int main(int argc, char** argv)
-try {
+{
     if (argc != 4) {
         cout << "usage: " << argv[0]
              << " local_peer_id rusty_signal_server_host stun_server" << endl;
@@ -232,10 +232,6 @@ try {
     }
 
     return 0;
-}
-catch (exception const& error) {
-    cout << "Error:" << error.what() << endl;
-    return -1;
 }
 
 void rustySendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& json)
