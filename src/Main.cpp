@@ -1,5 +1,6 @@
 #include "rtc/rtc.hpp"
 #include "json/json.h"
+#include <base-logging/Logging.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Exception.hpp>
 #include <curlpp/Infos.hpp>
@@ -110,6 +111,8 @@ try {
             return;
         }
 
+        LOG_DEBUG_S << "signalr: " << get<string>(data) << std::endl;
+
         string error;
         if (!signalr_decoder.parseJSONMessage(get<string>(data).c_str(), error)) {
             throw invalid_argument(error);
@@ -176,6 +179,8 @@ try {
             return;
         }
 
+        LOG_DEBUG_S << "rusty: " << get<string>(data) << std::endl;
+
         string error;
         if (!rusty_decoder.parseJSONMessage(get<string>(data).c_str(), error)) {
             throw invalid_argument(error);
@@ -235,6 +240,7 @@ void rustySendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& jso
     if (auto ws = make_weak_ptr(websocket).lock()) {
         Json::FastWriter fast;
         auto msg = fast.write(json);
+        LOG_DEBUG_S << "rusty::sendJSON " << msg << std::endl;
         ws->send(msg);
     }
 }
@@ -244,6 +250,7 @@ void signalRSendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& j
     if (auto ws = make_weak_ptr(websocket).lock()) {
         Json::FastWriter fast;
         auto msg = fast.write(json);
+        LOG_DEBUG_S << "signalr::sendJSON " << msg << std::endl;
         ws->send(msg + "\x1e");
     }
 }
