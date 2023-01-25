@@ -167,8 +167,6 @@ try {
     RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
-    rtc::Configuration rusty_config;
-    rusty_config.iceServers.emplace_back("stun:" + stun_server);
 
     rusty_websocket->onOpen([&]() {
         cout << "RustySignal WebSocket connected, signaling ready" << endl;
