@@ -66,10 +66,12 @@ try {
     request.setOpt(new curlpp::options::Url(url_https));
     request.setOpt(new curlpp::options::Verbose(false));
     list<string> header;
-    header.push_back("Content-Type: application/x-www-form-urlencoded");
+    header.push_back("Content-Type: application/json");
     request.setOpt(new curlpp::options::HttpHeader(header));
     request.setOpt(new curlpp::options::SslVerifyHost(false));
     request.setOpt(new curlpp::options::SslVerifyPeer(false));
+    request.setOpt(new curlpp::options::PostFields(""));
+    request.setOpt(new curlpp::options::PostFieldSize(0));
     std::ostringstream os;
     curlpp::options::WriteStream ws(&os);
     request.setOpt(ws);
