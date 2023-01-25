@@ -107,7 +107,11 @@ try {
         wsr_promise.set_exception(make_exception_ptr(runtime_error(error)));
     });
 
-    signalr_websocket->onClosed([&]() { cout << "SignalR WebSocket closed" << endl; });
+    signalr_websocket->onClosed([&]() {
+        cout << "SignalR WebSocket closed" << endl;
+        wsr_promise.set_exception(
+            make_exception_ptr(runtime_error("SignalR WS Unexpectedly Closed")));
+    });
 
     signalr_websocket->onMessage([&](variant<binary, string> data) {
         if (!holds_alternative<string>(data)) {
@@ -157,6 +161,7 @@ try {
         local_peer_id + ":5001/sessionHub?id=" + https_token;
     cout << "SignalR WebSocket URL is " << signalr_url_websocket << endl;
     signalr_websocket->open(signalr_url_websocket);
+    wsr_future.get();
     sendInitialPayload(signalr_websocket);
 
     RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
