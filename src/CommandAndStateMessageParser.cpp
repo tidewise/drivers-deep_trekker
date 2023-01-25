@@ -160,6 +160,7 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     camera_head["lasers"] = head.laser;
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
+    camera_head["tilt"]["position"] = tilt.elements[0].position;
     camera_head["camera"]["exposure"] =
         min(max(static_cast<double>(head.camera.exposure), 0.0), 1.0) * 15;
     camera_head["camera"]["brightness"] =
@@ -368,6 +369,15 @@ double CommandAndStateMessageParser::getTetherLenght(string address)
 double CommandAndStateMessageParser::getCpuTemperature(string address)
 {
     return mJData["payload"]["devices"][address]["cpuTemp"].asDouble();
+}
+
+double CommandAndStateMessageParser::getCameraHeadTiltPosition(string address)
+{
+    m_camera_head_tilt_position.orientation = Quaterniond(
+        AngleAxisd(mJData["payload"]["devices"][address]["cameraHead"]["tilt"]["position"]
+                       .asDouble(),
+            Vector3d::UnitZ()));
+    samples::RigidBodyState m_camera_head_tilt_position;
 }
 
 bool CommandAndStateMessageParser::isCalibrated(string address)
