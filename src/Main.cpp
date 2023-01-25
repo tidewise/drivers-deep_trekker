@@ -158,7 +158,7 @@ try {
 
     // wss://localhost:5001/sessionHub?id=+connectionToken
     const string signalr_url_websocket =
-        local_peer_id + ":5001/sessionHub?id=" + https_token;
+        "wss://" + local_peer_id + ":5001/sessionHub?id=" + https_token;
     cout << "SignalR WebSocket URL is " << signalr_url_websocket << endl;
     signalr_websocket->open(signalr_url_websocket);
     wsr_future.get();
