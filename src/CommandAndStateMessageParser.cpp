@@ -160,7 +160,8 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     camera_head["lasers"] = head.laser;
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
-    camera_head["tilt"]["position"] = tilt.elements[0].position;
+    m_camera_head_tilt_position_command =  min(max(static_cast<double>(tilt.elements[0].position), -110.0), 140.0);
+    camera_head["tilt"]["position"] =  m_camera_head_tilt_position_command;
     camera_head["camera"]["exposure"] =
         min(max(static_cast<double>(head.camera.exposure), 0.0), 1.0) * 15;
     camera_head["camera"]["brightness"] =
@@ -371,13 +372,18 @@ double CommandAndStateMessageParser::getCpuTemperature(string address)
     return mJData["payload"]["devices"][address]["cpuTemp"].asDouble();
 }
 
-double CommandAndStateMessageParser::getCameraHeadTiltPosition(string address)
+base::samples::RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltPosition(
+    string address)
 {
-    m_camera_head_tilt_position.orientation = Quaterniond(
-        AngleAxisd(mJData["payload"]["devices"][address]["cameraHead"]["tilt"]["position"]
-                       .asDouble(),
-            Vector3d::UnitZ()));
-    samples::RigidBodyState m_camera_head_tilt_position;
+    // As we don't know if there is feedback for the camera tilt position, we're assuming
+    // here that the camera tilt position is equal to the camera tilt position command
+    // (workaround)
+    base::samples::RigidBodyState camera_head_tilt_position;
+    double camera_head_tilt_position_command_rad =
+        m_camera_head_tilt_position_command * M_PI / 180;
+    camera_head_tilt_position.orientation = Quaterniond(
+        AngleAxisd(camera_head_tilt_position_command_rad, Vector3d::UnitZ()));
+    return camera_head_tilt_position;
 }
 
 bool CommandAndStateMessageParser::isCalibrated(string address)

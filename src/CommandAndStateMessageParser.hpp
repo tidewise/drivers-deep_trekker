@@ -70,7 +70,7 @@ namespace deep_trekker {
         base::JointState motorDiagnosticsToJointState(Json::Value value);
         double getLightIntensity(std::string address);
         double getCpuTemperature(std::string address);
-        double getCameraHeadTiltPosition(std::string address);
+        base::samples::RigidBodyState getCameraHeadTiltPosition(std::string address);
         double getTetherLenght(std::string address);
         bool getMotorOvercurrentStates(std::string address, std::string motor_side);
         bool isACPowerConnected(std::string address);
@@ -86,7 +86,7 @@ namespace deep_trekker {
         Json::Value mJData;
         Json::CharReaderBuilder mRBuilder;
         std::unique_ptr<Json::CharReader> mReader;
-        base::samples::RigidBodyState m_camera_head_tilt_position;
+        double m_camera_head_tilt_position_command;
     };
 
 } // namespace deep_trekker
