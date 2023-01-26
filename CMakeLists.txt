@@ -4,5 +4,7 @@ project(deep_trekker
         DESCRIPTION "Deep trekker drivers algorithms")
 find_package(Rock)
 
+set(CMAKE_CXX_STANDARD 17)
+
 rock_init()
 rock_standard_layout()

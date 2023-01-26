@@ -1,0 +1,287 @@
+#include <base-logging/Logging.hpp>
+#include <deep_trekker/SignalR.hpp>
+
+#include <base/Time.hpp>
+
+#include <curlpp/Easy.hpp>
+#include <curlpp/Exception.hpp>
+#include <curlpp/Infos.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/cURLpp.hpp>
+
+#include <functional>
+#include <stdexcept>
+
+using namespace deep_trekker;
+using namespace rtc;
+using namespace std;
+
+SignalR::SignalR(rtc::WebSocket::Configuration const& config,
+    string const& host,
+    string const& rock_peer_id,
+    string const& deep_trekker_peer_id,
+    base::Time const& timeout)
+    : m_ws(config, "deep-trekker")
+    , m_host(host)
+    , m_rock_peer_id(rock_peer_id)
+    , m_deep_trekker_peer_id(deep_trekker_peer_id)
+    , m_timeout(timeout)
+{
+}
+
+SignalR::~SignalR()
+{
+}
+
+void SignalR::negotiate()
+{
+    // Http post request
+    curlpp::Cleanup cleaner;
+    curlpp::Easy request;
+    string url_https = "https://" + m_host + "/sessionHub/negotiate?negotiateVersion=1";
+    request.setOpt(new curlpp::options::Url(url_https));
+    request.setOpt(new curlpp::options::Verbose(true));
+    list<string> header;
+    header.push_back("Content-Type: application/json");
+    request.setOpt(new curlpp::options::HttpHeader(header));
+    request.setOpt(new curlpp::options::SslVerifyHost(false));
+    request.setOpt(new curlpp::options::SslVerifyPeer(false));
+    request.setOpt(new curlpp::options::PostFields(""));
+    request.setOpt(new curlpp::options::PostFieldSize(0));
+    std::ostringstream os;
+    curlpp::options::WriteStream ws(&os);
+    request.setOpt(ws);
+    request.perform();
+    os << request;
+
+    string body = os.str().c_str();
+
+    Json::Value json = m_ws.jsonParse(body);
+    m_token = json["connectionToken"].asString();
+    LOG_DEBUG_S << "Connection token: " << m_token << std::endl;
+}
+
+void SignalR::open()
+{
+    m_state = STATE_PENDING;
+    m_ws.open("wss://" + m_host + "/sessionHub?id=" + m_token, m_timeout);
+    m_ws.onJSONMessage([&](Json::Value const& data) { process(data); });
+    m_ws.onJSONError([&](std::string const& msg) {
+        LOG_ERROR_S << "error processing received JSON: " << msg << endl;
+        setState(STATE_JSON_ERROR);
+    });
+
+    m_ws.onWebSocketError([&](string const& error) { setState(STATE_CONNECTION_LOST); });
+
+    LOG_DEBUG_S << "signalr: starting handshake";
+    waitState(
+        STATE_SESSION_CHECK,
+        [&] { handshake(); },
+        m_timeout);
+    LOG_DEBUG_S << "signalr: successful handshake";
+}
+
+void SignalR::setState(States state)
+{
+    unique_lock lock(m_state_lock);
+    m_state = state;
+    m_state_wait.notify_all();
+}
+
+void SignalR::waitState(States state, base::Time const& timeout)
+{
+    unique_lock lock(m_state_lock);
+    waitState(state, lock, m_timeout);
+}
+
+void SignalR::waitState(States state, std::function<void()> f, base::Time const& timeout)
+{
+    unique_lock lock(m_state_lock);
+    f();
+    waitState(state, lock, timeout);
+}
+
+template <typename Lock>
+void SignalR::waitState(States state, Lock& lock, base::Time const& timeout)
+{
+    while (m_state != state) {
+        if (m_state_wait.wait_for(lock, chrono::microseconds(timeout.toMicroseconds())) ==
+            cv_status::timeout) {
+            throw std::runtime_error("timed out waiting for state " + to_string(state));
+        }
+
+        if (m_state >= STATE_FATAL_ERRORS) {
+            throw runtime_error(
+                "SignalR entered fatal error state " + to_string(m_state));
+        }
+    }
+}
+
+void SignalR::process(Json::Value const& msg)
+{
+    if (m_state == STATE_HANDSHAKE) {
+        if (msg.empty()) {
+            LOG_DEBUG_S << "signalr: received handshake reply";
+            sessionCheck();
+            setState(STATE_SESSION_CHECK);
+        }
+        else {
+            LOG_ERROR_S
+                << "expected empty message in reply to handshake message, but got "
+                << m_ws.jsonToString(msg) << endl;
+            setState(STATE_PROTOCOL_ERROR);
+        }
+        return;
+    }
+
+    if (!msg.isMember("type")) {
+        LOG_ERROR_S << "received message from SignalR without a 'type' field: "
+                    << m_ws.jsonToString(msg) << endl;
+        setState(STATE_PROTOCOL_ERROR);
+        return;
+    }
+
+    int type = msg["type"].asInt();
+    LOG_DEBUG_S << "signalr: message type " << type;
+    if (type == 3) {
+        processReply(msg);
+    }
+    else if (type == 1 && msg["target"].asString() == "session_list") {
+        m_session_id = msg["arguments"][0][0]["session_id"].asString();
+        LOG_DEBUG_S << "signalr: session ID is " << m_session_id;
+    }
+    else if (type == 1 && msg["target"].asString() == "session_info") {
+        LOG_INFO_S << "received session info " << m_ws.jsonToString(msg) << endl;
+    }
+    else if (type == 1 && msg["target"].asString() == "offer") {
+        auto data = msg["arguments"][0];
+        m_listener->publishDescription(data["sdp_message"]["type"].asString(),
+            data["sdp_message"]["sdp"].asString());
+    }
+
+    LOG_DEBUG_S << "signalr: state == " << m_state;
+    switch (m_state) {
+        case STATE_SESSION_CHECK: {
+            if (!hasReceivedReply()) {
+                LOG_DEBUG_S << "signalr: waiting for session check reply";
+                return;
+            }
+            if (m_session_id.empty()) {
+                LOG_DEBUG_S << "signalr: waiting for session ID";
+                return;
+            }
+
+            sessionJoin();
+            break;
+        }
+
+        case STATE_SESSION_JOIN: {
+            if (!hasReceivedReply()) {
+                return;
+            }
+
+            setState(STATE_READY);
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+string SignalR::getNextInvocationID()
+{
+    if (m_last_used_invocation_id != m_last_received_invocation_id) {
+        throw runtime_error(
+            "attempting to perform a call before the previous one was resolved");
+    }
+    return to_string(++m_last_used_invocation_id);
+}
+
+void SignalR::call(string const& target, Json::Value const& arg)
+{
+    Json::Value message;
+    message["arguments"].append(m_ws.jsonToString(arg));
+    message["invocationId"] = getNextInvocationID();
+    message["target"] = target;
+    message["type"] = 1;
+
+    auto msg = m_ws.jsonToString(message);
+    LOG_DEBUG_S << "bridge > signalr: " << msg << endl;
+    m_ws.send(msg + "\x1e");
+}
+
+bool SignalR::hasReceivedReply() const
+{
+    return m_last_received_invocation_id == m_last_used_invocation_id;
+}
+
+Json::Value SignalR::processReply(Json::Value const& ret)
+{
+    if (ret["invocationId"].asString() != to_string(m_last_used_invocation_id)) {
+        throw runtime_error("expected to receive result for call ID " +
+                            to_string(m_last_used_invocation_id) + " but is " +
+                            to_string(m_last_received_invocation_id));
+    }
+
+    m_last_received_invocation_id = m_last_used_invocation_id;
+    if (ret.isMember("error")) {
+        throw runtime_error("received error in reply to call " +
+                            to_string(m_last_used_invocation_id) + ": " +
+                            ret["error"].asString());
+    }
+
+    return ret["result"];
+}
+
+void SignalR::handshake()
+{
+    Json::Value message;
+    message["protocol"] = "json";
+    message["version"] = 1;
+    m_state = STATE_HANDSHAKE;
+    m_ws.send(m_ws.jsonToString(message) + "\x1e");
+}
+
+void SignalR::sessionCheck()
+{
+    Json::Value args;
+    args["client_id"] = m_rock_peer_id;
+    m_state = STATE_SESSION_CHECK;
+    LOG_DEBUG_S << "signalr: session check";
+    call("session_check", args);
+}
+
+void SignalR::sessionJoin()
+{
+    if (m_session_id.empty()) {
+        throw logic_error("sessionJoin called before the session ID is known");
+    }
+
+    Json::Value args;
+    args["client_id"] = m_rock_peer_id;
+    args["session_id"] = m_session_id;
+    m_state = STATE_SESSION_JOIN;
+    LOG_DEBUG_S << "signalr: starting session join";
+    call("join_session", args);
+}
+
+void SignalR::publishICECandidate(std::string const& candidate)
+{
+    Json::Value msg;
+    msg["target"] = m_deep_trekker_peer_id;
+    msg["candidate"] = candidate;
+    call("ice_candidate", msg);
+}
+void SignalR::publishDescription(std::string const& type, std::string const& sdp)
+{
+    Json::Value msg;
+    msg["target"] = m_deep_trekker_peer_id;
+    msg["caller"] = m_rock_peer_id;
+
+    Json::Value sdp_message;
+    sdp_message["type"] = type;
+    sdp_message["sdp"] = sdp;
+    msg["sdp_message"] = sdp_message;
+    call(type, msg);
+}
