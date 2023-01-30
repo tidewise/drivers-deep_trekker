@@ -45,6 +45,10 @@ int main(int argc, char** argv)
 
     rtc::WebSocket::Configuration rusty_config;
     Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
+
+    rusty.setListener(&signalr);
+    signalr.setListener(&rusty);
+
     cout << "Press ENTER to stop" << endl;
     cin.get();
 }

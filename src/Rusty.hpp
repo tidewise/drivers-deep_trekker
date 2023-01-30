@@ -2,6 +2,7 @@
 #define DEEP_TREKKER_RUSTY_HPP
 
 #include <base/Timeout.hpp>
+#include <deep_trekker/NullWebRTCNegotiation.hpp>
 #include <deep_trekker/SynchronousWebSocket.hpp>
 #include <deep_trekker/WebRTCNegotiationInterface.hpp>
 #include <rtc/rtc.hpp>
@@ -17,6 +18,8 @@ namespace deep_trekker {
         std::string m_deep_trekker_peer_id;
         base::Time m_timeout;
 
+        WebRTCNegotiationInterface *m_listener = new NullWebRTCNegotiation();
+
         void open();
 
     public:
@@ -26,6 +29,8 @@ namespace deep_trekker {
             std::string const& deep_trekker_peer_id,
             base::Time const& timeout = base::Time::fromSeconds(2));
         ~Rusty();
+
+        void setListener(WebRTCNegotiationInterface *listener);
 
         void publishICECandidate(std::string const& candidate) override;
         void publishDescription(std::string const& type, std::string const& sdp) override;

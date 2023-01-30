@@ -325,3 +325,8 @@ void SignalR::publishDescription(std::string const& type, std::string const& sdp
     msg["sdp_message"] = sdp_message;
     call(type, msg);
 }
+
+void SignalR::setListener(WebRTCNegotiationInterface* listener)
+{
+    m_listener = listener;
+}

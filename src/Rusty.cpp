@@ -34,6 +34,11 @@ void Rusty::open()
     m_ws.open("ws://" + m_host + "?user=" + m_deep_trekker_peer_id, m_timeout);
 }
 
+void Rusty::setListener(WebRTCNegotiationInterface* listener)
+{
+    m_listener = listener;
+}
+
 void Rusty::publishDescription(std::string const& type, std::string const& sdp)
 {
     Json::Value msg;
