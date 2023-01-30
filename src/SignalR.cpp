@@ -87,12 +87,11 @@ void SignalR::open()
 
     m_ws.onWebSocketError([&](string const& error) { setState(STATE_CONNECTION_LOST); });
 
-    LOG_DEBUG_S << "signalr: starting handshake";
+    LOG_INFO_S << "signalr: starting handshake";
     waitState(
         STATE_SESSION_CHECK,
         [&] { handshake(); },
         m_timeout);
-    LOG_DEBUG_S << "signalr: successful handshake";
 }
 
 void SignalR::setState(States state)
@@ -135,7 +134,7 @@ void SignalR::process(Json::Value const& msg)
 {
     if (m_state == STATE_HANDSHAKE) {
         if (msg.empty()) {
-            LOG_DEBUG_S << "signalr: received handshake reply";
+            LOG_INFO_S << "signalr: received handshake reply";
             sessionCheck();
             setState(STATE_SESSION_CHECK);
         }
@@ -156,13 +155,12 @@ void SignalR::process(Json::Value const& msg)
     }
 
     int type = msg["type"].asInt();
-    LOG_DEBUG_S << "signalr: message type " << type;
     if (type == 3) {
         processReply(msg);
     }
     else if (type == 1 && msg["target"].asString() == "session_list") {
         m_session_id = msg["arguments"][0][0]["session_id"].asString();
-        LOG_DEBUG_S << "signalr: session ID is " << m_session_id;
+        LOG_INFO_S << "signalr: session ID is " << m_session_id;
     }
     else if (type == 1 && msg["target"].asString() == "session_info") {
         bool found = false;
@@ -186,7 +184,7 @@ void SignalR::process(Json::Value const& msg)
             data["sdp_message"]["sdp"].asString());
     }
 
-    LOG_DEBUG_S << "signalr: state == " << m_state;
+    LOG_DEBUG_S << "signalr: current state == " << m_state;
     switch (m_state) {
         case STATE_SESSION_CHECK: {
             if (!hasReceivedReply()) {
@@ -214,6 +212,7 @@ void SignalR::process(Json::Value const& msg)
         default:
             break;
     }
+    LOG_DEBUG_S << "signalr: new state == " << m_state;
 }
 
 string SignalR::getNextInvocationID()
@@ -275,7 +274,7 @@ void SignalR::sessionCheck()
     Json::Value args;
     args["client_id"] = m_rock_peer_id;
     m_state = STATE_SESSION_CHECK;
-    LOG_DEBUG_S << "signalr: session check";
+    LOG_INFO_S << "signalr: session check";
     call("session_check", args);
 }
 
@@ -289,7 +288,7 @@ void SignalR::sessionJoin()
     args["client_id"] = m_rock_peer_id;
     args["session_id"] = m_session_id;
     m_state = STATE_SESSION_JOIN;
-    LOG_DEBUG_S << "signalr: starting session join";
+    LOG_INFO_S << "signalr: starting session join";
     call("join_session", args);
 }
 
