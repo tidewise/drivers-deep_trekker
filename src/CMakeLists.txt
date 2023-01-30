@@ -9,10 +9,9 @@ rock_library(deep_trekker
             RustySignalMessageDecoder.hpp
             SignalRMessageDecoder.hpp
             HttpPostRequestReplyMessageDecoder.hpp
-    DEPS_PKGCONFIG base-types power_base jsoncpp)
+    DEPS_PKGCONFIG base-types power_base jsoncpp base-logging)
 
-
-rock_executable(signaling_bridge Main.cpp
+rock_executable(deep_trekker_signaling_bridge Main.cpp
     DEPS deep_trekker
     DEPS_PKGCONFIG libdatachannel curlpp)
 

@@ -1,5 +1,6 @@
 #include "rtc/rtc.hpp"
 #include "json/json.h"
+#include <base-logging/Logging.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Exception.hpp>
 #include <curlpp/Infos.hpp>
@@ -16,37 +17,33 @@ using namespace deep_trekker;
 using namespace std;
 using namespace rtc;
 using std::shared_ptr;
-using std::weak_ptr;
 
-template <class T> weak_ptr<T> make_weak_ptr(shared_ptr<T> ptr)
-{
-    return ptr;
-}
-void pong(shared_ptr<rtc::WebSocket>& websocket,
+void pong(shared_ptr<rtc::WebSocket>& rusty_websocket,
     RustySignalMessageDecoder& decoder,
     string const& local_peer_id);
-void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket);
-void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_id);
-void joinSession(shared_ptr<rtc::WebSocket>& websocket,
+void sendInitialPayload(shared_ptr<rtc::WebSocket>& signalr_websocket);
+void sendSessionCheck(shared_ptr<rtc::WebSocket>& signalr_websocket,
+    string& local_peer_id);
+void joinSession(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id);
-void leaveSession(shared_ptr<rtc::WebSocket>& websocket,
+void leaveSession(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id);
-bool initialHandShakeFinalized(shared_ptr<rtc::WebSocket>& websocket,
+bool initialHandShakeFinalized(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id);
-void offerAnswerRustyMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void offerAnswerRustyMessageParser(shared_ptr<rtc::WebSocket>& signalr_websocket,
     RustySignalMessageDecoder& decoder);
-void candidateRustyMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void candidateRustyMessageParser(shared_ptr<rtc::WebSocket>& signalr_websocket,
     RustySignalMessageDecoder& decoder);
-void offerAnswerSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void offerAnswerSignalMessageParser(shared_ptr<rtc::WebSocket>& rusty_websocket,
     SignalRMessageDecoder& decoder);
-void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& rusty_websocket,
     SignalRMessageDecoder& decoder);
 
 int main(int argc, char** argv)
-try {
+{
     if (argc != 4) {
         cout << "usage: " << argv[0]
              << " local_peer_id rusty_signal_server_host stun_server" << endl;
@@ -62,11 +59,14 @@ try {
     string url_https =
         "https://" + local_peer_id + ":5001/sessionHub/negotiate?negotiateVersion=1";
     request.setOpt(new curlpp::options::Url(url_https));
-    request.setOpt(new curlpp::options::Verbose(true));
+    request.setOpt(new curlpp::options::Verbose(false));
     list<string> header;
-    header.push_back("Content-Type: application/x-www-form-urlencoded");
+    header.push_back("Content-Type: application/json");
     request.setOpt(new curlpp::options::HttpHeader(header));
+    request.setOpt(new curlpp::options::SslVerifyHost(false));
     request.setOpt(new curlpp::options::SslVerifyPeer(false));
+    request.setOpt(new curlpp::options::PostFields(""));
+    request.setOpt(new curlpp::options::PostFieldSize(0));
     std::ostringstream os;
     curlpp::options::WriteStream ws(&os);
     request.setOpt(ws);
@@ -86,7 +86,9 @@ try {
     signalr_config.iceServers.emplace_back("stun:" + stun_server);
 
     // SignalR websocket
-    auto signalr_websocket = make_shared<rtc::WebSocket>();
+    rtc::WebSocket::Configuration config;
+    config.disableTlsVerification = true;
+    auto signalr_websocket = make_shared<rtc::WebSocket>(config);
     // RustySignal websocket
     auto rusty_websocket = make_shared<rtc::WebSocket>();
 
@@ -102,12 +104,18 @@ try {
         wsr_promise.set_exception(make_exception_ptr(runtime_error(error)));
     });
 
-    signalr_websocket->onClosed([&]() { cout << "SignalR WebSocket closed" << endl; });
+    signalr_websocket->onClosed([&]() {
+        cout << "SignalR WebSocket closed" << endl;
+        wsr_promise.set_exception(
+            make_exception_ptr(runtime_error("SignalR WS Unexpectedly Closed")));
+    });
 
     signalr_websocket->onMessage([&](variant<binary, string> data) {
         if (!holds_alternative<string>(data)) {
             return;
         }
+
+        LOG_DEBUG_S << "signalr: " << get<string>(data) << std::endl;
 
         string error;
         if (!signalr_decoder.parseJSONMessage(get<string>(data).c_str(), error)) {
@@ -147,16 +155,15 @@ try {
 
     // wss://localhost:5001/sessionHub?id=+connectionToken
     const string signalr_url_websocket =
-        local_peer_id + ":5001/sessionHub?id=" + https_token;
+        "wss://" + local_peer_id + ":5001/sessionHub?id=" + https_token;
     cout << "SignalR WebSocket URL is " << signalr_url_websocket << endl;
     signalr_websocket->open(signalr_url_websocket);
+    wsr_future.get();
     sendInitialPayload(signalr_websocket);
 
     RustySignalMessageDecoder rusty_decoder = RustySignalMessageDecoder();
     promise<void> ws_promise;
     future<void> ws_future = ws_promise.get_future();
-    rtc::Configuration rusty_config;
-    rusty_config.iceServers.emplace_back("stun:" + stun_server);
 
     rusty_websocket->onOpen([&]() {
         cout << "RustySignal WebSocket connected, signaling ready" << endl;
@@ -174,6 +181,8 @@ try {
         if (!holds_alternative<string>(data)) {
             return;
         }
+
+        LOG_DEBUG_S << "rusty: " << get<string>(data) << std::endl;
 
         string error;
         if (!rusty_decoder.parseJSONMessage(get<string>(data).c_str(), error)) {
@@ -224,38 +233,51 @@ try {
 
     return 0;
 }
-catch (exception const& error) {
-    cout << "Error:" << error.what() << endl;
-    return -1;
+
+void rustySendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& json)
+{
+    Json::FastWriter fast;
+    auto msg = fast.write(json);
+    LOG_DEBUG_S << "rusty::sendJSON " << msg << std::endl;
+    websocket->send(msg);
+}
+
+void signalRSendJSON(shared_ptr<rtc::WebSocket>& websocket, Json::Value const& json)
+{
+    Json::FastWriter fast;
+    auto msg = fast.write(json);
+    LOG_DEBUG_S << "signalr::sendJSON " << msg << std::endl;
+    websocket->send(msg + "\x1e");
 }
 
 void sendInitialPayload(shared_ptr<rtc::WebSocket>& websocket)
 {
     Json::Value message;
     message["protocol"] = "json";
-    message["version"] = "1";
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    message["version"] = 1;
+    LOG_INFO_S << "signalr send initial payload (protocol/version)" << std::endl;
+    signalRSendJSON(websocket, message);
 }
 
-void sendSessionCheck(shared_ptr<rtc::WebSocket>& websocket, string& local_peer_id)
+void sendSessionCheck(shared_ptr<rtc::WebSocket>& signalr_websocket,
+    string& local_peer_id)
 {
-    Json::Value message, content(Json::arrayValue);
-    content.append("client_id:" + local_peer_id);
+    Json::Value message, content(Json::arrayValue), stream_ids(Json::arrayValue);
+    // content.append("client_id:" + local_peer_id);
+    Json::Value client_id;
+    client_id["client_id"] = "foobar";
+    content.append(client_id);
     message["arguments"] = content;
     message["invocationId"] = "0";
-    message["streamIds"] = Json::arrayValue;
+    stream_ids.append("blablabla");
+    message["streamIds"] = stream_ids;
     message["target"] = "session_check";
     message["type"] = 1;
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   signalr session check" << std::endl;
+    signalRSendJSON(signalr_websocket, message);
 }
 
-void joinSession(shared_ptr<rtc::WebSocket>& websocket,
+void joinSession(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id)
 {
@@ -267,13 +289,11 @@ void joinSession(shared_ptr<rtc::WebSocket>& websocket,
     message["streamIds"] = Json::arrayValue;
     message["target"] = "join_session";
     message["type"] = 1;
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   signalr join session" << std::endl;
+    signalRSendJSON(signalr_websocket, message);
 }
 
-void leaveSession(shared_ptr<rtc::WebSocket>& websocket,
+void leaveSession(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id)
 {
@@ -285,13 +305,11 @@ void leaveSession(shared_ptr<rtc::WebSocket>& websocket,
     message["streamIds"] = Json::arrayValue;
     message["target"] = "leave_session";
     message["type"] = 1;
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   signalr leave session" << std::endl;
+    signalRSendJSON(signalr_websocket, message);
 }
 
-void pong(shared_ptr<rtc::WebSocket>& websocket,
+void pong(shared_ptr<rtc::WebSocket>& rusty_websocket,
     RustySignalMessageDecoder& decoder,
     string const& local_peer_id)
 {
@@ -300,13 +318,11 @@ void pong(shared_ptr<rtc::WebSocket>& websocket,
     message["to"] = decoder.getFrom();
     message["action"] = "pong";
     message["data"]["from"] = local_peer_id;
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   rusty   pong" << std::endl;
+    rustySendJSON(rusty_websocket, message);
 }
 
-void offerAnswerRustyMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void offerAnswerRustyMessageParser(shared_ptr<rtc::WebSocket>& signalr_websocket,
     RustySignalMessageDecoder& decoder)
 {
     Json::Value message;
@@ -314,25 +330,21 @@ void offerAnswerRustyMessageParser(shared_ptr<rtc::WebSocket>& websocket,
     message["caller"] = decoder.getFrom();
     message["sdp_message"]["type"] = decoder.getActionType();
     message["sdp_message"]["sdp"] = decoder.getDescription();
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   signalr   send SDP offer" << std::endl;
+    signalRSendJSON(signalr_websocket, message);
 }
 
-void candidateRustyMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void candidateRustyMessageParser(shared_ptr<rtc::WebSocket>& signalr_websocket,
     RustySignalMessageDecoder& decoder)
 {
     Json::Value message;
     message["target"] = decoder.getTo();
     message["candidate"] = decoder.getCandidate();
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   signalr   send candidate" << std::endl;
+    signalRSendJSON(signalr_websocket, message);
 }
 
-void offerAnswerSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void offerAnswerSignalMessageParser(shared_ptr<rtc::WebSocket>& rusty_websocket,
     SignalRMessageDecoder& decoder)
 {
     Json::Value message;
@@ -341,14 +353,11 @@ void offerAnswerSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
     message["action"] = decoder.getActionType();
     message["data"]["from"] = decoder.getFrom();
     message["data"]["description"] = decoder.getDescription();
-
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   rusty   send offer" << std::endl;
+    rustySendJSON(rusty_websocket, message);
 }
 
-void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
+void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& rusty_websocket,
     SignalRMessageDecoder& decoder)
 {
     Json::Value message;
@@ -357,22 +366,20 @@ void candidateSignalMessageParser(shared_ptr<rtc::WebSocket>& websocket,
     message["action"] = decoder.getActionType();
     message["data"]["from"] = decoder.getFrom();
     message["data"]["candidate"] = decoder.getDescription();
-    if (auto ws = make_weak_ptr(websocket).lock()) {
-        Json::FastWriter fast;
-        ws->send(fast.write(message));
-    }
+    LOG_INFO_S << "to   rusty   send candidate" << std::endl;
+    rustySendJSON(rusty_websocket, message);
 }
 
-bool initialHandShakeFinalized(shared_ptr<rtc::WebSocket>& websocket,
+bool initialHandShakeFinalized(shared_ptr<rtc::WebSocket>& signalr_websocket,
     SignalRMessageDecoder& decoder,
     string& local_peer_id)
 {
     if (decoder.isEmpty()) {
-        sendSessionCheck(websocket, local_peer_id);
+        sendSessionCheck(signalr_websocket, local_peer_id);
         return false;
     }
     if (decoder.checkSessionList()) {
-        joinSession(websocket, decoder, local_peer_id);
+        joinSession(signalr_websocket, decoder, local_peer_id);
         return false;
     }
     if (decoder.getClientId() == local_peer_id) {
