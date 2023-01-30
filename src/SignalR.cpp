@@ -231,12 +231,21 @@ void SignalR::call(string const& target, Json::Value const& arg)
 {
     Json::Value message;
     message["arguments"].append(m_ws.jsonToString(arg));
-    message["invocationId"] = getNextInvocationID();
     message["target"] = target;
     message["type"] = 1;
+    if (!hasReceivedReply()) {
+        m_message_queue.push(message);
+    }
+    else {
+        invoke(message);
+    }
+}
 
+void SignalR::invoke(Json::Value message)
+{
+
+    message["invocationId"] = getNextInvocationID();
     auto msg = m_ws.jsonToString(message);
-    LOG_DEBUG_S << "bridge > signalr: " << msg << endl;
     m_ws.send(msg + "\x1e");
 }
 
@@ -254,6 +263,12 @@ Json::Value SignalR::processReply(Json::Value const& ret)
     }
 
     m_last_received_invocation_id = m_last_used_invocation_id;
+    if (!m_message_queue.empty()) {
+        auto json = m_message_queue.front();
+        m_message_queue.pop();
+        invoke(json);
+    }
+
     if (ret.isMember("error")) {
         throw runtime_error("received error in reply to call " +
                             to_string(m_last_used_invocation_id) + ": " +
