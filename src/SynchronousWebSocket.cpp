@@ -8,6 +8,9 @@ using namespace std;
 SynchronousWebSocket::SynchronousWebSocket(string const& debug_name)
     : SynchronousWebSocket(WebSocket::Configuration(), debug_name)
 {
+    m_on_error = [](std::string const&) {};
+    m_on_json_error = [](std::string const&) {};
+    m_on_json_message = [](Json::Value const&) {};
 }
 
 SynchronousWebSocket::~SynchronousWebSocket()
