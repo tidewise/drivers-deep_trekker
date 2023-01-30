@@ -155,7 +155,10 @@ void SignalR::process(Json::Value const& msg)
     }
 
     int type = msg["type"].asInt();
-    if (type == 3) {
+    if (type == 6) {
+        m_listener->pong();
+    }
+    else if (type == 3) {
         processReply(msg);
     }
     else if (type == 1 && msg["target"].asString() == "session_list") {
@@ -324,6 +327,18 @@ void SignalR::publishDescription(std::string const& type, std::string const& sdp
     sdp_message["sdp"] = sdp;
     msg["sdp_message"] = sdp_message;
     call(type, msg);
+}
+
+void SignalR::ping()
+{
+    string msg("{type: \"6\" }\x1e");
+    m_ws.send(msg);
+}
+
+void SignalR::pong()
+{
+    string msg("{type: \"6\" }\x1e");
+    m_ws.send(msg);
 }
 
 void SignalR::setListener(WebRTCNegotiationInterface* listener)

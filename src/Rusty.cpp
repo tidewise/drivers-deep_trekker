@@ -32,11 +32,40 @@ Rusty::~Rusty()
 void Rusty::open()
 {
     m_ws.open("ws://" + m_host + "?user=" + m_deep_trekker_peer_id, m_timeout);
+    m_ws.onJSONMessage([&](Json::Value const& msg) {
+        auto action = msg["action"].asString();
+        if (action == "ping") {
+            pong();
+        }
+    });
 }
 
 void Rusty::setListener(WebRTCNegotiationInterface* listener)
 {
     m_listener = listener;
+}
+
+void Rusty::sendPingPong(std::string const& type)
+{
+    Json::Value msg;
+    msg["protocol"] = "one-to-one";
+    msg["to"] = m_rock_peer_id;
+    msg["action"] = type;
+
+    Json::Value data;
+    data["from"] = m_deep_trekker_peer_id;
+    msg["data"] = data;
+    m_ws.send(msg);
+}
+
+void Rusty::ping()
+{
+    sendPingPong("ping");
+}
+
+void Rusty::pong()
+{
+    sendPingPong("pong");
 }
 
 void Rusty::publishDescription(std::string const& type, std::string const& sdp)

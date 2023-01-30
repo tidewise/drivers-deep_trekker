@@ -12,3 +12,9 @@ void NullWebRTCNegotiation::publishDescription(std::string const& type,
 void NullWebRTCNegotiation::publishICECandidate(std::string const& candidate)
 {
 }
+void NullWebRTCNegotiation::ping()
+{
+}
+void NullWebRTCNegotiation::pong()
+{
+}

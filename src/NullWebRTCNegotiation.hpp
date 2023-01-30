@@ -11,6 +11,10 @@ namespace deep_trekker {
         void publishDescription(std::string const& type, std::string const& sdp) override;
         /** Publish a candidate */
         void publishICECandidate(std::string const& candidate) override;
+        /** Send a ping request */
+        void ping();
+        /** Send a pong reply */
+        void pong();
     };
 }
 

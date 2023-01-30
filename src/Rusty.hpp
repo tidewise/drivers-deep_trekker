@@ -21,6 +21,7 @@ namespace deep_trekker {
         WebRTCNegotiationInterface *m_listener = new NullWebRTCNegotiation();
 
         void open();
+        void sendPingPong(std::string const &type);
 
     public:
         Rusty(rtc::WebSocket::Configuration const& config,

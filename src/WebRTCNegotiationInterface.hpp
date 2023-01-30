@@ -11,6 +11,8 @@ namespace deep_trekker {
         virtual void publishDescription(std::string const& type,
             std::string const& sdp) = 0;
         virtual void publishICECandidate(std::string const& candidate) = 0;
+        virtual void ping() = 0;
+        virtual void pong() = 0;
     };
 }
 
