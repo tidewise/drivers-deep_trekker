@@ -1,3 +1,4 @@
+#include <base-logging/Logging.hpp>
 #include <deep_trekker/Rusty.hpp>
 
 using namespace deep_trekker;
@@ -14,6 +15,18 @@ Rusty::Rusty(WebSocket::Configuration const& config,
     , m_deep_trekker_peer_id(deep_trekker_peer_id)
     , m_timeout(timeout)
 {
+    open();
+}
+
+Rusty::~Rusty()
+{
+    try {
+        LOG_INFO_S << "rusty: closing websocket";
+        m_ws.close(m_timeout);
+    }
+    catch (std::exception& e) {
+        LOG_ERROR_S << "rusty: failed to close websocket " << e.what();
+    }
 }
 
 void Rusty::open()

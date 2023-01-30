@@ -17,13 +17,15 @@ namespace deep_trekker {
         std::string m_deep_trekker_peer_id;
         base::Time m_timeout;
 
+        void open();
+
     public:
         Rusty(rtc::WebSocket::Configuration const& config,
             std::string const& host,
             std::string const& rusty_peer_id,
             std::string const& deep_trekker_peer_id,
             base::Time const& timeout = base::Time::fromSeconds(2));
-        void open();
+        ~Rusty();
 
         void publishICECandidate(std::string const& candidate) override;
         void publishDescription(std::string const& type, std::string const& sdp) override;

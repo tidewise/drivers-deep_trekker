@@ -21,6 +21,7 @@ namespace deep_trekker {
             STATE_SESSION_CHECK,
             STATE_SESSION_JOIN,
             STATE_READY,
+            STATE_SESSION_LEAVE,
 
             STATE_FATAL_ERRORS,
             STATE_CONNECTION_LOST,
@@ -62,21 +63,14 @@ namespace deep_trekker {
         void handshake();
         void sessionCheck();
         void sessionJoin();
-
-    public:
-        SignalR(rtc::WebSocket::Configuration const& config,
-            std::string const& host,
-            std::string const& rock_peer_id,
-            std::string const& deep_trekker_peer_id,
-            base::Time const& timeout = base::Time::fromSeconds(2));
-        virtual ~SignalR();
+        void sessionLeave();
 
         /** Synchronous initial negotiation phase
          *
          * This must be called first, since it gathers the connection token needed
          * to open the websocket
          */
-        void negotiate();
+        void negotiate(bool curl_verbose = false);
 
         /** Synchronously open the websocket, and asynchronously start the
          * session protocol
@@ -85,6 +79,21 @@ namespace deep_trekker {
          * the session join to finish
          */
         void open();
+
+    public:
+        /** Connects to the deep-trekker-provided SignalR server and start negotiating
+         *
+         * The constructor returns when the websocket is opened and the first handshake
+         * message returned successfully
+         */
+        SignalR(rtc::WebSocket::Configuration const& config,
+            std::string const& host,
+            std::string const& rock_peer_id,
+            std::string const& deep_trekker_peer_id,
+            bool curl_verbose = false,
+            base::Time const& timeout = base::Time::fromSeconds(2));
+        virtual ~SignalR();
+
         void setListener(WebRTCNegotiationInterface* listener);
 
         void waitState(States state,

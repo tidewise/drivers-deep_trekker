@@ -20,6 +20,7 @@ SignalR::SignalR(rtc::WebSocket::Configuration const& config,
     string const& host,
     string const& rock_peer_id,
     string const& deep_trekker_peer_id,
+    bool curl_verbose,
     base::Time const& timeout)
     : m_ws(config, "deep-trekker")
     , m_host(host)
@@ -27,20 +28,33 @@ SignalR::SignalR(rtc::WebSocket::Configuration const& config,
     , m_deep_trekker_peer_id(deep_trekker_peer_id)
     , m_timeout(timeout)
 {
+    negotiate(curl_verbose);
+    open();
 }
 
 SignalR::~SignalR()
 {
+    if (m_state == STATE_READY) {
+        sessionLeave();
+    }
+
+    try {
+        LOG_INFO_S << "signalr: closing websocket";
+        m_ws.close(m_timeout);
+    }
+    catch (std::exception& e) {
+        LOG_ERROR_S << "signalr: failed to close websocket: " << e.what();
+    }
 }
 
-void SignalR::negotiate()
+void SignalR::negotiate(bool curl_verbose)
 {
     // Http post request
     curlpp::Cleanup cleaner;
     curlpp::Easy request;
     string url_https = "https://" + m_host + "/sessionHub/negotiate?negotiateVersion=1";
     request.setOpt(new curlpp::options::Url(url_https));
-    request.setOpt(new curlpp::options::Verbose(true));
+    request.setOpt(new curlpp::options::Verbose(curl_verbose));
     list<string> header;
     header.push_back("Content-Type: application/json");
     request.setOpt(new curlpp::options::HttpHeader(header));
@@ -264,6 +278,20 @@ void SignalR::sessionJoin()
     m_state = STATE_SESSION_JOIN;
     LOG_DEBUG_S << "signalr: starting session join";
     call("join_session", args);
+}
+
+void SignalR::sessionLeave()
+{
+    if (m_session_id.empty()) {
+        throw logic_error("leaveSession called before the it was joined");
+    }
+
+    Json::Value args;
+    args["client_id"] = m_rock_peer_id;
+    args["session_id"] = m_session_id;
+    m_state = STATE_SESSION_LEAVE;
+    LOG_INFO_S << "signalr: starting session leave";
+    call("leave_session", args);
 }
 
 void SignalR::publishICECandidate(std::string const& candidate)

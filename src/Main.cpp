@@ -31,21 +31,23 @@ int main(int argc, char** argv)
         rtcInitLogger(rtcLogLevelFromString(env), nullptr);
     }
 
-    rtc::WebSocket::Configuration signalr_config;
-    signalr_config.disableTlsVerification = true;
-    SignalR signalr(signalr_config, signalr_host, rock_peer_id, deep_trekker_peer_id);
-    signalr.negotiate();
-    signalr.open();
-    signalr.waitState(SignalR::STATE_READY);
+    env_c = getenv("CURL_VERBOSE");
+    bool curl_verbose = (env_c && string(env_c) == "1");
 
     rtc::WebSocket::Configuration rusty_config;
     Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
-    rusty.open();
 
-    string leave_session;
+    rtc::WebSocket::Configuration signalr_config;
+    signalr_config.disableTlsVerification = true;
+    SignalR signalr(signalr_config,
+        signalr_host,
+        rock_peer_id,
+        deep_trekker_peer_id,
+        curl_verbose);
+    signalr.waitState(SignalR::STATE_READY);
+
     cout << "Press ENTER to stop" << endl;
-    cin >> leave_session;
-    cin.ignore();
+    cin.get();
 }
 
 rtcLogLevel rtcLogLevelFromString(string const& str)
