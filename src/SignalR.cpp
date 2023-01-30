@@ -165,7 +165,20 @@ void SignalR::process(Json::Value const& msg)
         LOG_DEBUG_S << "signalr: session ID is " << m_session_id;
     }
     else if (type == 1 && msg["target"].asString() == "session_info") {
-        LOG_INFO_S << "received session info " << m_ws.jsonToString(msg) << endl;
+        bool found = false;
+        auto clients = msg["arguments"][0]["clients"];
+        for (unsigned int i = 0; !found && (i < clients.size()); ++i) {
+            found = (clients[i]["client_id"] == m_rock_peer_id);
+        }
+        if (found) {
+            LOG_INFO_S << "signalr: session joined";
+        }
+        else {
+            LOG_ERROR_S << "signalr: session not joined";
+            LOG_ERROR_S << "signalr: received session info " << msg;
+            setState(STATE_PROTOCOL_ERROR);
+            return;
+        }
     }
     else if (type == 1 && msg["target"].asString() == "offer") {
         auto data = msg["arguments"][0];
