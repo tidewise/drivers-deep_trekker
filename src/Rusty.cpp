@@ -37,6 +37,12 @@ void Rusty::open()
         if (action == "ping") {
             pong();
         }
+        else if (action == "offer" || action == "answer") {
+            m_listener->publishDescription(action, msg["data"]["description"].asString());
+        }
+        else if (action == "candidate") {
+            m_listener->publishICECandidate(msg["data"]["candidate"].asString());
+        }
     });
 }
 
