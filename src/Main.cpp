@@ -34,9 +34,6 @@ int main(int argc, char** argv)
     env_c = getenv("CURL_VERBOSE");
     bool curl_verbose = (env_c && string(env_c) == "1");
 
-    rtc::WebSocket::Configuration rusty_config;
-    Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
-
     rtc::WebSocket::Configuration signalr_config;
     signalr_config.disableTlsVerification = true;
     SignalR signalr(signalr_config,
@@ -46,6 +43,8 @@ int main(int argc, char** argv)
         curl_verbose);
     signalr.waitState(SignalR::STATE_READY);
 
+    rtc::WebSocket::Configuration rusty_config;
+    Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
     cout << "Press ENTER to stop" << endl;
     cin.get();
 }
