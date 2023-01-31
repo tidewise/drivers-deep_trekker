@@ -193,7 +193,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     command.camera.zoom.speed = 0.75;
     base::samples::Joints tilt;
     JointState joint_state;
-    joint_state.position = 3.0;
+    joint_state.position = M_PI;
     joint_state.speed = -0.4;
     tilt.elements.push_back(joint_state);
     string message =
@@ -213,7 +213,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     ASSERT_NEAR(camera_head["lights"].asDouble(), command.light * 100, 0.001);
     ASSERT_EQ(camera_head["lasers"].asBool(), command.laser);
     ASSERT_NEAR(camera_head["tilt"]["speed"].asFloat(), tilt.elements[0].speed * 100, 0.001);
-    ASSERT_NEAR(camera_head["tilt"]["position"].asFloat(), tilt.elements[0].position, 0.001);
+    ASSERT_NEAR(camera_head["tilt"]["position"].asFloat() * M_PI / 180, tilt.elements[0].position, 0.001);
     ASSERT_NEAR(camera_head["camera"]["exposure"].asFloat(), command.camera.exposure * 15, 0.001);
     ASSERT_NEAR(camera_head["camera"]["brightness"].asFloat(),
         command.camera.brightness * 100, 0.001);

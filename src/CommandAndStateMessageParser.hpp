@@ -86,7 +86,7 @@ namespace deep_trekker {
         Json::Value mJData;
         Json::CharReaderBuilder mRBuilder;
         std::unique_ptr<Json::CharReader> mReader;
-        double m_camera_head_tilt_position_command;
+        double m_camera_head_tilt_position_command = base::unknown<double>();
     };
 
 } // namespace deep_trekker

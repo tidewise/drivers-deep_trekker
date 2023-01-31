@@ -160,8 +160,10 @@ string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string ap
     camera_head["lasers"] = head.laser;
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
-    m_camera_head_tilt_position_command =  min(max(static_cast<double>(tilt.elements[0].position), -110.0), 140.0);
-    camera_head["tilt"]["position"] =  m_camera_head_tilt_position_command;
+    m_camera_head_tilt_position_command =
+        min(max(static_cast<double>(tilt.elements[0].position), -110.0 * M_PI / 180),
+            140.0 * M_PI / 180);
+    camera_head["tilt"]["position"] = m_camera_head_tilt_position_command * 180 / M_PI;
     camera_head["camera"]["exposure"] =
         min(max(static_cast<double>(head.camera.exposure), 0.0), 1.0) * 15;
     camera_head["camera"]["brightness"] =
@@ -379,10 +381,8 @@ base::samples::RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltPos
     // here that the camera tilt position is equal to the camera tilt position command
     // (workaround)
     base::samples::RigidBodyState camera_head_tilt_position;
-    double camera_head_tilt_position_command_rad =
-        m_camera_head_tilt_position_command * M_PI / 180;
-    camera_head_tilt_position.orientation = Quaterniond(
-        AngleAxisd(camera_head_tilt_position_command_rad, Vector3d::UnitZ()));
+    camera_head_tilt_position.orientation =
+        Quaterniond(AngleAxisd(m_camera_head_tilt_position_command, Vector3d::UnitZ()));
     return camera_head_tilt_position;
 }
 
