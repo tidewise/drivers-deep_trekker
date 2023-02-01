@@ -193,7 +193,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     command.camera.zoom.speed = 0.75;
     base::samples::Joints tilt;
     JointState joint_state;
-    joint_state.position = M_PI;
+    joint_state.position = 2.0;
     joint_state.speed = -0.4;
     tilt.elements.push_back(joint_state);
     string message =
