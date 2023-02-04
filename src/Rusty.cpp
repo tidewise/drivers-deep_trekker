@@ -86,7 +86,7 @@ void Rusty::publishDescription(std::string const& type, std::string const& sdp)
     data["description"] = sdp;
 
     msg["data"] = data;
-    m_ws.send(m_ws.jsonToString(data));
+    m_ws.send(m_ws.jsonToString(msg));
 }
 
 void Rusty::publishICECandidate(std::string const& candidate)
@@ -101,5 +101,5 @@ void Rusty::publishICECandidate(std::string const& candidate)
     data["candidate"] = candidate;
     data["mid"] = m_ws.jsonParse(candidate)["mid"];
     msg["data"] = data;
-    m_ws.send(m_ws.jsonToString(data));
+    m_ws.send(m_ws.jsonToString(msg));
 }
