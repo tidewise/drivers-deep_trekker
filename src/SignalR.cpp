@@ -185,9 +185,13 @@ void SignalR::process(Json::Value const& msg)
         }
     }
     else if (type == 1 && msg["target"].asString() == "offer") {
-        auto data = msg["arguments"][0];
-        m_listener->publishDescription(data["sdp_message"]["type"].asString(),
-            data["sdp_message"]["sdp"].asString());
+        auto data = m_ws.jsonParse(msg["arguments"][0].asString());
+
+        m_signalr_context["target"] = data["caller"];
+        m_signalr_context["caller"] = data["target"];
+        m_signalr_context["sessionId"] = data["sessionId"];
+        m_listener->publishDescription(data["sdp"]["type"].asString(),
+            data["sdp"]["sdp"].asString());
     }
 
     switch (m_state) {
@@ -327,21 +331,23 @@ void SignalR::sessionLeave()
 
 void SignalR::publishICECandidate(std::string const& candidate)
 {
-    Json::Value msg;
-    msg["target"] = m_deep_trekker_peer_id;
-    msg["candidate"] = candidate;
+    Json::Value msg = m_signalr_context;
+
+    Json::Value data;
+    data["sdpMid"] = 0;
+    data["sdpMlineIndex"] = 0;
+    data["content"] = candidate.substr(2);
+    msg["candidate"] = data;
     call("ice_candidate", msg);
 }
 void SignalR::publishDescription(std::string const& type, std::string const& sdp)
 {
-    Json::Value msg;
-    msg["target"] = m_deep_trekker_peer_id;
-    msg["caller"] = m_rock_peer_id;
+    Json::Value msg = m_signalr_context;
 
     Json::Value sdp_message;
     sdp_message["type"] = type;
     sdp_message["sdp"] = sdp;
-    msg["sdp_message"] = sdp_message;
+    msg["sdp"] = sdp_message;
     call(type, msg);
 }
 

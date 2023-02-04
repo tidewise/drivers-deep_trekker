@@ -51,6 +51,7 @@ namespace deep_trekker {
         int m_last_received_invocation_id = 0;
         std::string m_session_id;
         std::queue<Json::Value> m_message_queue;
+        Json::Value m_signalr_context;
 
         std::string getNextInvocationID();
 
