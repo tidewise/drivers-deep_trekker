@@ -86,7 +86,10 @@ void SignalR::open()
     });
 
     m_ws.onWebSocketError([&](string const& error) { setState(STATE_CONNECTION_LOST); });
+}
 
+void SignalR::start()
+{
     LOG_INFO_S << "signalr: starting handshake";
     waitState(
         STATE_SESSION_CHECK,

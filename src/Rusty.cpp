@@ -34,21 +34,48 @@ void Rusty::open()
     m_ws.open("ws://" + m_host + "?user=" + m_deep_trekker_peer_id, m_timeout);
     m_ws.onJSONMessage([&](Json::Value const& msg) {
         auto action = msg["action"].asString();
+        if (action == "open") {
+            {
+                std::unique_lock lock(m_on_new_client_lock);
+                m_has_new_client = true;
+                m_client.reset();
+                m_on_new_client.notify_all();
+            }
+        }
+
+        auto client = m_client.lock();
+        if (!client) {
+            return;
+        }
+
         if (action == "ping") {
             pong();
         }
         else if (action == "offer" || action == "answer") {
-            m_listener->publishDescription(action, msg["data"]["description"].asString());
+            client->publishDescription(action, msg["data"]["description"].asString());
         }
         else if (action == "candidate") {
-            m_listener->publishICECandidate(msg["data"]["candidate"].asString());
+            client->publishICECandidate(msg["data"]["candidate"].asString());
         }
     });
 }
 
-void Rusty::setListener(WebRTCNegotiationInterface* listener)
+void Rusty::waitNewClient()
 {
-    m_listener = listener;
+    std::unique_lock lock(m_on_new_client_lock);
+    while (!m_has_new_client) {
+        m_on_new_client.wait(lock);
+    }
+    m_has_new_client = false;
+}
+
+bool Rusty::setClient(std::shared_ptr<WebRTCNegotiationInterface> client)
+{
+    std::unique_lock lock(m_on_new_client_lock);
+    if (m_has_new_client) {
+        return false;
+    }
+    m_client = client;
 }
 
 void Rusty::sendPingPong(std::string const& type)

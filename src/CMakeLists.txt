@@ -14,5 +14,7 @@ rock_library(deep_trekker
             SynchronousWebSocket.hpp
     DEPS_PKGCONFIG base-types power_base jsoncpp base-logging libdatachannel curlpp)
 
+find_package(Threads REQUIRED)
 rock_executable(deep_trekker_signaling_bridge Main.cpp
     DEPS deep_trekker)
+target_link_libraries(deep_trekker_signaling_bridge Threads::Threads)

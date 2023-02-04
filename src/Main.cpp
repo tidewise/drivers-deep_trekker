@@ -11,6 +11,11 @@ using std::shared_ptr;
 
 rtcLogLevel rtcLogLevelFromString(string const& str);
 
+shared_ptr<SignalR> createSignalR(Rusty* rusty,
+    string const& signalr_host,
+    string const& rock_peer_id,
+    string const& deep_trekker_peer_id);
+
 int main(int argc, char** argv)
 {
     if (argc != 5) {
@@ -31,26 +36,25 @@ int main(int argc, char** argv)
         rtcInitLogger(rtcLogLevelFromString(env), nullptr);
     }
 
-    env_c = getenv("CURL_VERBOSE");
-    bool curl_verbose = (env_c && string(env_c) == "1");
-
-    rtc::WebSocket::Configuration signalr_config;
-    signalr_config.disableTlsVerification = true;
-    SignalR signalr(signalr_config,
-        signalr_host,
-        rock_peer_id,
-        deep_trekker_peer_id,
-        curl_verbose);
-    signalr.waitState(SignalR::STATE_READY);
-
     rtc::WebSocket::Configuration rusty_config;
     Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
 
-    rusty.setListener(&signalr);
-    signalr.setListener(&rusty);
+    bool exit = false;
+    auto exit_condition_thread = std::thread([&exit] {
+        cout << "Press ENTER to stop" << endl;
+        cin.get();
+        exit = true;
+    });
 
-    cout << "Press ENTER to stop" << endl;
-    cin.get();
+    std::shared_ptr<SignalR> signalr;
+    while (true) {
+        rusty.waitNewClient();
+        signalr = createSignalR(&rusty, signalr_host, rock_peer_id, deep_trekker_peer_id);
+        signalr->setListener(&rusty);
+        rusty.setClient(signalr);
+        signalr->start();
+        signalr->waitState(SignalR::STATE_READY);
+    }
 }
 
 rtcLogLevel rtcLogLevelFromString(string const& str)
@@ -76,4 +80,17 @@ rtcLogLevel rtcLogLevelFromString(string const& str)
                   << std::endl;
         return RTC_LOG_WARNING;
     }
+}
+
+std::shared_ptr<SignalR> createSignalR(Rusty* rusty,
+    string const& signalr_host,
+    string const& rock_peer_id,
+    string const& deep_trekker_peer_id)
+{
+    rtc::WebSocket::Configuration signalr_config;
+    signalr_config.disableTlsVerification = true;
+    unique_ptr<SignalR> signalr(
+        new SignalR(signalr_config, signalr_host, rock_peer_id, deep_trekker_peer_id));
+    signalr->setListener(rusty);
+    return signalr;
 }

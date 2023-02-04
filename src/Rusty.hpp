@@ -18,6 +18,11 @@ namespace deep_trekker {
         std::string m_deep_trekker_peer_id;
         base::Time m_timeout;
 
+        bool m_has_new_client = false;
+        std::weak_ptr<WebRTCNegotiationInterface> m_client;
+        std::mutex m_on_new_client_lock;
+        std::condition_variable m_on_new_client;
+
         WebRTCNegotiationInterface* m_listener = new NullWebRTCNegotiation();
 
         void open();
@@ -31,10 +36,13 @@ namespace deep_trekker {
             base::Time const& timeout = base::Time::fromSeconds(2));
         ~Rusty();
 
-        void setListener(WebRTCNegotiationInterface* listener);
+        void waitNewClient();
+        bool setClient(std::shared_ptr<WebRTCNegotiationInterface> client);
 
         void publishICECandidate(std::string const& candidate) override;
         void publishDescription(std::string const& type, std::string const& sdp) override;
+        void ping() override;
+        void pong() override;
     };
 }
 

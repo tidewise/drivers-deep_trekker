@@ -98,6 +98,7 @@ namespace deep_trekker {
             base::Time const& timeout = base::Time::fromSeconds(2));
         virtual ~SignalR();
 
+        void start();
         void setListener(WebRTCNegotiationInterface* listener);
 
         void waitState(States state,
