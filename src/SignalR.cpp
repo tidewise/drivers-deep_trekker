@@ -97,6 +97,9 @@ void SignalR::open()
 void SignalR::setState(States state)
 {
     unique_lock lock(m_state_lock);
+    if (m_state != state) {
+        LOG_DEBUG_S << "signalr: state change " << m_state << " -> " << state;
+    }
     m_state = state;
     m_state_wait.notify_all();
 }
@@ -187,7 +190,6 @@ void SignalR::process(Json::Value const& msg)
             data["sdp_message"]["sdp"].asString());
     }
 
-    LOG_DEBUG_S << "signalr: current state == " << m_state;
     switch (m_state) {
         case STATE_SESSION_CHECK: {
             if (!hasReceivedReply()) {
@@ -215,7 +217,6 @@ void SignalR::process(Json::Value const& msg)
         default:
             break;
     }
-    LOG_DEBUG_S << "signalr: new state == " << m_state;
 }
 
 string SignalR::getNextInvocationID()
