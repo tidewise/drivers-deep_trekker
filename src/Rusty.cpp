@@ -76,6 +76,7 @@ bool Rusty::setClient(std::shared_ptr<WebRTCNegotiationInterface> client)
         return false;
     }
     m_client = client;
+    return true;
 }
 
 void Rusty::sendPingPong(std::string const& type)
