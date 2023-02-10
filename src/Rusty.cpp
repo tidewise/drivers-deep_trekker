@@ -3,6 +3,7 @@
 
 using namespace deep_trekker;
 using namespace rtc;
+using namespace std;
 
 Rusty::Rusty(WebSocket::Configuration const& config,
     string const& host,
@@ -24,7 +25,7 @@ Rusty::~Rusty()
         LOG_INFO_S << "rusty: closing websocket";
         m_ws.close(m_timeout);
     }
-    catch (std::exception& e) {
+    catch (exception& e) {
         LOG_ERROR_S << "rusty: failed to close websocket " << e.what();
     }
 }
@@ -36,7 +37,7 @@ void Rusty::open()
         auto action = msg["action"].asString();
         if (action == "open") {
             {
-                std::unique_lock lock(m_on_new_client_lock);
+                unique_lock lock(m_on_new_client_lock);
                 m_has_new_client = true;
                 m_client.reset();
                 m_on_new_client.notify_all();
@@ -63,16 +64,16 @@ void Rusty::open()
 
 void Rusty::waitNewClient()
 {
-    std::unique_lock lock(m_on_new_client_lock);
+    unique_lock lock(m_on_new_client_lock);
     while (!m_has_new_client) {
         m_on_new_client.wait(lock);
     }
     m_has_new_client = false;
 }
 
-bool Rusty::setClient(std::shared_ptr<WebRTCNegotiationInterface> client)
+bool Rusty::setClient(shared_ptr<WebRTCNegotiationInterface> client)
 {
-    std::unique_lock lock(m_on_new_client_lock);
+    unique_lock lock(m_on_new_client_lock);
     if (m_has_new_client) {
         return false;
     }
@@ -80,7 +81,7 @@ bool Rusty::setClient(std::shared_ptr<WebRTCNegotiationInterface> client)
     return true;
 }
 
-void Rusty::sendPingPong(std::string const& type)
+void Rusty::sendPingPong(string const& type)
 {
     Json::Value msg;
     msg["protocol"] = "one-to-one";
@@ -103,7 +104,7 @@ void Rusty::pong()
     sendPingPong("pong");
 }
 
-void Rusty::publishDescription(std::string const& type, std::string const& sdp)
+void Rusty::publishDescription(string const& type, string const& sdp)
 {
     Json::Value msg;
     msg["protocol"] = "one-to-one";
@@ -118,7 +119,7 @@ void Rusty::publishDescription(std::string const& type, std::string const& sdp)
     m_ws.send(m_ws.jsonToString(msg));
 }
 
-void Rusty::publishICECandidate(std::string const& candidate)
+void Rusty::publishICECandidate(string const& candidate, string const& mid)
 {
     Json::Value msg;
     msg["protocol"] = "one-to-one";
