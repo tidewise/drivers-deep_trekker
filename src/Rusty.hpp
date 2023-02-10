@@ -39,7 +39,8 @@ namespace deep_trekker {
         void waitNewClient();
         bool setClient(std::shared_ptr<WebRTCNegotiationInterface> client);
 
-        void publishICECandidate(std::string const& candidate) override;
+        void publishICECandidate(std::string const& candidate,
+            std::string const& mid) override;
         void publishDescription(std::string const& type, std::string const& sdp) override;
         void ping() override;
         void pong() override;

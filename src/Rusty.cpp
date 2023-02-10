@@ -55,7 +55,8 @@ void Rusty::open()
             client->publishDescription(action, msg["data"]["description"].asString());
         }
         else if (action == "candidate") {
-            client->publishICECandidate(msg["data"]["candidate"].asString());
+            client->publishICECandidate(msg["data"]["candidate"].asString(),
+                msg["data"]["mid"].asString());
         }
     });
 }
@@ -127,7 +128,7 @@ void Rusty::publishICECandidate(std::string const& candidate)
     Json::Value data;
     data["from"] = m_deep_trekker_peer_id;
     data["candidate"] = candidate;
-    data["mid"] = m_ws.jsonParse(candidate)["mid"];
+    data["mid"] = mid;
     msg["data"] = data;
     m_ws.send(m_ws.jsonToString(msg));
 }

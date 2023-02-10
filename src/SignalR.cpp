@@ -196,6 +196,13 @@ void SignalR::process(Json::Value const& msg)
         m_listener->publishDescription(data["sdp"]["type"].asString(),
             data["sdp"]["sdp"].asString());
     }
+    else if (type == 1 && msg["target"].asString() == "ice_candidate") {
+        auto data = m_ws.jsonParse(msg["arguments"][0].asString());
+
+        m_listener->publishICECandidate(data["candidate"]["content"].asString(),
+            data["candidate"]["sdpMid"].asString());
+
+    }
 
     switch (m_state) {
         case STATE_SESSION_CHECK: {
@@ -332,12 +339,12 @@ void SignalR::sessionLeave()
     call("leave_session", args);
 }
 
-void SignalR::publishICECandidate(std::string const& candidate)
+void SignalR::publishICECandidate(std::string const& candidate, std::string const& mid)
 {
     Json::Value msg = m_signalr_context;
 
     Json::Value data;
-    data["sdpMid"] = 0;
+    data["sdpMid"] = mid;
     data["sdpMlineIndex"] = 0;
     data["content"] = candidate.substr(2);
     msg["candidate"] = data;

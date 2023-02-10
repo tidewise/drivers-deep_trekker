@@ -9,7 +9,8 @@ void NullWebRTCNegotiation::publishDescription(std::string const& type,
     std::string const& sdp)
 {
 }
-void NullWebRTCNegotiation::publishICECandidate(std::string const& candidate)
+void NullWebRTCNegotiation::publishICECandidate(std::string const& candidate,
+    std::string const& mid)
 {
 }
 void NullWebRTCNegotiation::ping()
