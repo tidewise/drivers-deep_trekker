@@ -368,13 +368,13 @@ void SignalR::publishDescription(std::string const& type, std::string const& sdp
 
 void SignalR::ping()
 {
-    string msg("{type: \"6\" }\x1e");
+    string msg("{type: 6}\x1e");
     m_ws.send(msg);
 }
 
 void SignalR::pong()
 {
-    string msg("{type: \"6\" }\x1e");
+    string msg("{type: 6}\x1e");
     m_ws.send(msg);
 }
 
