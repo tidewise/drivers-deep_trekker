@@ -96,6 +96,7 @@ void Rusty::waitClientEnd()
         }
 
         lock.unlock();
+        ping();
         this_thread::sleep_for(100ms);
     }
 }
