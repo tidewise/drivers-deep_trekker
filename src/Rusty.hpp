@@ -1,6 +1,7 @@
 #ifndef DEEP_TREKKER_RUSTY_HPP
 #define DEEP_TREKKER_RUSTY_HPP
 
+#include <base/Time.hpp>
 #include <base/Timeout.hpp>
 #include <deep_trekker/NullWebRTCNegotiation.hpp>
 #include <deep_trekker/SynchronousWebSocket.hpp>
@@ -17,11 +18,13 @@ namespace deep_trekker {
         std::string m_rock_peer_id;
         std::string m_deep_trekker_peer_id;
         base::Time m_timeout;
+        base::Time m_client_ping_deadline;
 
-        bool m_has_new_client = false;
+        std::shared_ptr<WebRTCNegotiationInterface> m_client_main;
         std::weak_ptr<WebRTCNegotiationInterface> m_client;
-        std::mutex m_on_new_client_lock;
-        std::condition_variable m_on_new_client;
+
+        std::mutex m_poll_lock;
+        bool m_has_new_client = false;
 
         WebRTCNegotiationInterface* m_listener = new NullWebRTCNegotiation();
 
@@ -36,7 +39,13 @@ namespace deep_trekker {
             base::Time const& timeout = base::Time::fromSeconds(2));
         ~Rusty();
 
-        void waitNewClient();
+        enum PollStatus {
+            STATUS_DISCONNECTED,
+            STATUS_NEW_CLIENT
+        };
+
+        void waitClientNew();
+        void waitClientEnd();
         bool setClient(std::shared_ptr<WebRTCNegotiationInterface> client);
 
         void publishICECandidate(std::string const& candidate,

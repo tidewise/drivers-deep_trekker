@@ -78,6 +78,7 @@ void SignalR::negotiate(bool curl_verbose)
 void SignalR::open()
 {
     m_state = STATE_PENDING;
+
     m_ws.open("wss://" + m_host + "/sessionHub?id=" + m_token, m_timeout);
     m_ws.onJSONMessage([&](Json::Value const& data) { process(data); });
     m_ws.onJSONError([&](std::string const& msg) {
@@ -160,9 +161,14 @@ void SignalR::process(Json::Value const& msg)
         return;
     }
 
+    auto listener = m_listener.lock();
+    if (!listener) {
+        return;
+    }
+
     int type = msg["type"].asInt();
     if (type == 6) {
-        m_listener->pong();
+        listener->pong();
     }
     else if (type == 3) {
         processReply(msg);
@@ -193,15 +199,14 @@ void SignalR::process(Json::Value const& msg)
         m_signalr_context["target"] = data["caller"];
         m_signalr_context["caller"] = data["target"];
         m_signalr_context["sessionId"] = data["sessionId"];
-        m_listener->publishDescription(data["sdp"]["type"].asString(),
+        listener->publishDescription(data["sdp"]["type"].asString(),
             data["sdp"]["sdp"].asString());
     }
     else if (type == 1 && msg["target"].asString() == "ice_candidate") {
         auto data = m_ws.jsonParse(msg["arguments"][0].asString());
 
-        m_listener->publishICECandidate(data["candidate"]["content"].asString(),
+        listener->publishICECandidate(data["candidate"]["content"].asString(),
             data["candidate"]["sdpMid"].asString());
-
     }
 
     switch (m_state) {
@@ -373,7 +378,7 @@ void SignalR::pong()
     m_ws.send(msg);
 }
 
-void SignalR::setListener(WebRTCNegotiationInterface* listener)
+void SignalR::setListener(shared_ptr<WebRTCNegotiationInterface> listener)
 {
     m_listener = listener;
 }

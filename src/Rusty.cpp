@@ -4,6 +4,7 @@
 using namespace deep_trekker;
 using namespace rtc;
 using namespace std;
+using namespace base;
 
 Rusty::Rusty(WebSocket::Configuration const& config,
     string const& host,
@@ -37,10 +38,9 @@ void Rusty::open()
         auto action = msg["action"].asString();
         if (action == "open") {
             {
-                unique_lock lock(m_on_new_client_lock);
-                m_has_new_client = true;
+                unique_lock lock(m_poll_lock);
                 m_client.reset();
-                m_on_new_client.notify_all();
+                m_has_new_client = true;
             }
         }
 
@@ -49,8 +49,14 @@ void Rusty::open()
             return;
         }
 
+        {
+            unique_lock lock(m_poll_lock);
+            m_client_ping_deadline = Time::now() + m_timeout;
+        }
+
         if (action == "ping") {
             pong();
+            client->ping();
         }
         else if (action == "offer" || action == "answer") {
             client->publishDescription(action, msg["data"]["description"].asString());
@@ -62,18 +68,41 @@ void Rusty::open()
     });
 }
 
-void Rusty::waitNewClient()
+void Rusty::waitClientNew()
 {
-    unique_lock lock(m_on_new_client_lock);
-    while (!m_has_new_client) {
-        m_on_new_client.wait(lock);
+    while (true) {
+        unique_lock lock(m_poll_lock);
+        if (m_has_new_client) {
+            m_has_new_client = false;
+            return;
+        }
+
+        lock.unlock();
+        this_thread::sleep_for(100ms);
     }
-    m_has_new_client = false;
+}
+
+void Rusty::waitClientEnd()
+{
+    while (true) {
+        unique_lock lock(m_poll_lock);
+        if (m_has_new_client) {
+            return;
+        }
+
+        if (!m_client_ping_deadline.isNull() && Time::now() > m_client_ping_deadline) {
+            LOG_ERROR_S << "Rusty client timed out, disconnecting";
+            return;
+        }
+
+        lock.unlock();
+        this_thread::sleep_for(100ms);
+    }
 }
 
 bool Rusty::setClient(shared_ptr<WebRTCNegotiationInterface> client)
 {
-    unique_lock lock(m_on_new_client_lock);
+    unique_lock lock(m_poll_lock);
     if (m_has_new_client) {
         return false;
     }

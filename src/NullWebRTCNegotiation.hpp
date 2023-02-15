@@ -2,6 +2,7 @@
 #define DEEP_TREKKER_NULLWEBRTCNEGOTIATION_HPP
 
 #include <deep_trekker/WebRTCNegotiationInterface.hpp>
+#include <memory>
 
 namespace deep_trekker {
     class NullWebRTCNegotiation : public WebRTCNegotiationInterface {
@@ -16,6 +17,8 @@ namespace deep_trekker {
         void ping();
         /** Send a pong reply */
         void pong();
+
+        static std::shared_ptr<NullWebRTCNegotiation> instance();
     };
 }
 

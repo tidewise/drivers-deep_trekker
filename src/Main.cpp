@@ -11,7 +11,7 @@ using std::shared_ptr;
 
 rtcLogLevel rtcLogLevelFromString(string const& str);
 
-shared_ptr<SignalR> createSignalR(Rusty* rusty,
+shared_ptr<SignalR> createSignalR(shared_ptr<Rusty> rusty,
     string const& signalr_host,
     string const& rock_peer_id,
     string const& deep_trekker_peer_id);
@@ -37,23 +37,29 @@ int main(int argc, char** argv)
     }
 
     rtc::WebSocket::Configuration rusty_config;
-    Rusty rusty(rusty_config, rusty_host, rock_peer_id, deep_trekker_peer_id);
 
-    bool exit = false;
-    auto exit_condition_thread = std::thread([&exit] {
-        cout << "Press ENTER to stop" << endl;
-        cin.get();
-        exit = true;
-    });
-
-    std::shared_ptr<SignalR> signalr;
     while (true) {
-        rusty.waitNewClient();
-        signalr = createSignalR(&rusty, signalr_host, rock_peer_id, deep_trekker_peer_id);
-        signalr->setListener(&rusty);
-        rusty.setClient(signalr);
-        signalr->start();
-        signalr->waitState(SignalR::STATE_READY);
+        std::shared_ptr<Rusty> rusty = make_shared<Rusty>(rusty_config,
+            rusty_host,
+            rock_peer_id,
+            deep_trekker_peer_id);
+
+        rusty->waitClientNew();
+
+        LOG_INFO_S << "Opening connection to Deep Trekker";
+        std::shared_ptr<SignalR> signalr =
+            createSignalR(rusty, signalr_host, rock_peer_id, deep_trekker_peer_id);
+        signalr->setListener(rusty);
+        if (rusty->setClient(signalr)) {
+            LOG_INFO_S << "Starting negotiation";
+            signalr->start();
+            signalr->waitState(SignalR::STATE_READY);
+        }
+
+        rusty->waitClientEnd();
+        rusty.reset();
+        signalr.reset();
+        LOG_INFO_S << "Rusty client end, waiting for new client";
     }
 }
 
@@ -82,7 +88,7 @@ rtcLogLevel rtcLogLevelFromString(string const& str)
     }
 }
 
-std::shared_ptr<SignalR> createSignalR(Rusty* rusty,
+std::shared_ptr<SignalR> createSignalR(shared_ptr<Rusty> rusty,
     string const& signalr_host,
     string const& rock_peer_id,
     string const& deep_trekker_peer_id)

@@ -60,7 +60,8 @@ namespace deep_trekker {
         bool hasReceivedReply() const;
         Json::Value processReply(Json::Value const& ret);
 
-        WebRTCNegotiationInterface* m_listener = new NullWebRTCNegotiation();
+        std::weak_ptr<WebRTCNegotiationInterface> m_listener =
+            NullWebRTCNegotiation::instance();
 
         void process(Json::Value const& msg);
 
@@ -99,7 +100,7 @@ namespace deep_trekker {
         virtual ~SignalR();
 
         void start();
-        void setListener(WebRTCNegotiationInterface* listener);
+        void setListener(std::shared_ptr<WebRTCNegotiationInterface> listener);
 
         void waitState(States state,
             base::Time const& timeout = base::Time::fromSeconds(1));

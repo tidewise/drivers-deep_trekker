@@ -1,6 +1,8 @@
 #include <deep_trekker/NullWebRTCNegotiation.hpp>
+#include <memory>
 
 using namespace deep_trekker;
+using namespace std;
 
 NullWebRTCNegotiation::~NullWebRTCNegotiation()
 {
@@ -18,4 +20,10 @@ void NullWebRTCNegotiation::ping()
 }
 void NullWebRTCNegotiation::pong()
 {
+}
+
+static shared_ptr<NullWebRTCNegotiation> instance = make_shared<NullWebRTCNegotiation>();
+shared_ptr<NullWebRTCNegotiation> NullWebRTCNegotiation::instance()
+{
+    return ::instance;
 }

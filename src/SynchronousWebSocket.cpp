@@ -83,7 +83,6 @@ void SynchronousWebSocket::open(string const& url, base::Time const& timeout)
             "timed out waiting for the websocket connection with " + m_debug_name);
     }
     future.get();
-
     m_ws.onError(m_on_error);
 
     LOG_DEBUG_S << "successfully opened connection to " << m_debug_name;
