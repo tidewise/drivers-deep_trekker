@@ -35,7 +35,12 @@ SignalR::SignalR(rtc::WebSocket::Configuration const& config,
 SignalR::~SignalR()
 {
     if (m_state == STATE_READY) {
-        sessionLeave();
+        try {
+            sessionLeave();
+        }
+        catch (std::exception& e) {
+            LOG_ERROR_S << "signalr: failed to leave session: " << e.what();
+        }
     }
 
     try {
