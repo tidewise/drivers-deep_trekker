@@ -42,7 +42,6 @@ namespace deep_trekker {
         base::Time time;
         bool laser;
         double light;
-        TamronHarrierZoomCameraCommand camera;
     };
 
     /**
