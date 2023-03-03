@@ -1,19 +1,24 @@
 rock_library(deep_trekker
     SOURCES CommandAndStateMessageParser.cpp
-            RustySignalMessageDecoder.cpp
-            SignalRMessageDecoder.cpp
-            HttpPostRequestReplyMessageDecoder.cpp
+            NullWebRTCNegotiation.cpp
+            Rusty.cpp
+            SynchronousWebSocket.cpp
     HEADERS CommandAndStateMessageParser.hpp
             DeepTrekkerCommands.hpp
             DeepTrekkerStates.hpp
-            RustySignalMessageDecoder.hpp
-            SignalRMessageDecoder.hpp
-            HttpPostRequestReplyMessageDecoder.hpp
-    DEPS_PKGCONFIG base-types power_base jsoncpp base-logging)
+            WebRTCNegotiationInterface.hpp
+            NullWebRTCNegotiation.hpp
+            Rusty.hpp
+            SynchronousWebSocket.hpp
+    DEPS_PKGCONFIG base-types power_base jsoncpp base-logging libdatachannel)
 
-rock_executable(deep_trekker_signaling_bridge Main.cpp
-    DEPS deep_trekker
-    DEPS_PKGCONFIG libdatachannel curlpp)
+rock_library(signalr
+    SOURCES SignalR.cpp
+    HEADERS SignalR.hpp
+    DEPS_PKGCONFIG curlpp)
 
-# Needed by libdatachannel
-set_source_files_properties( Main.cpp PROPERTIES COMPILE_FLAGS "-std=c++17" )
+target_link_libraries(signalr deep_trekker)
+
+find_package(Threads REQUIRED)
+rock_executable(deep_trekker_signaling_bridge Main.cpp DEPS signalr)
+target_link_libraries(deep_trekker_signaling_bridge Threads::Threads)
