@@ -54,9 +54,14 @@ void CommandAndStateMessageParser::validateMotorStates(string device_id,
     validateFieldPresent(root, "rpm");
 }
 
-void CommandAndStateMessageParser::validatePoweredReelMotorState(string device_id) {
-    validateMotorStates(device_id, "motor1Diagnostics");
-    validateMotorStates(device_id, "motor2Diagnostics");
+void CommandAndStateMessageParser::validatePoweredReelMotorState(string device_id)
+{
+    auto root = m_json_data["payload"]["devices"][device_id]["motor1Diagnostics"];
+    validateFieldPresent(root, "pwm");
+    validateFieldPresent(root, "current");
+    root = m_json_data["payload"]["devices"][device_id]["motor2Diagnostics"];
+    validateFieldPresent(root, "pwm");
+    validateFieldPresent(root, "current");
 }
 
 void CommandAndStateMessageParser::validateGrabberMotorsStates(string device_id)
@@ -411,12 +416,12 @@ DriveMode CommandAndStateMessageParser::getRevolutionDriveModes(string address)
 {
     validateDriveModes(address);
     DriveMode drive_mode;
-    auto msg_setpoint = m_json_data["payload"]["devices"][address]["drive"]["modes"];
-    drive_mode.auto_stabilization = msg_setpoint["autoStabilization"].asBool();
-    drive_mode.heading_lock = msg_setpoint["headingLock"].asBool();
-    drive_mode.depth_lock = msg_setpoint["depthLock"].asBool();
-    drive_mode.altitude_lock = msg_setpoint["altitudeLock"].asBool();
-    drive_mode.motors_disabled = msg_setpoint["motorsDisabled"].asBool();
+    auto root = m_json_data["payload"]["devices"][address]["drive"]["modes"];
+    drive_mode.auto_stabilization = root["autoStabilization"].asBool();
+    drive_mode.heading_lock = root["headingLock"].asBool();
+    drive_mode.depth_lock = root["depthLock"].asBool();
+    drive_mode.altitude_lock = root["altitudeLock"].asBool();
+    drive_mode.motors_disabled = root["motorsDisabled"].asBool();
     return drive_mode;
 }
 
@@ -447,14 +452,12 @@ samples::Joints CommandAndStateMessageParser::getPoweredReelMotorState(string ad
     auto root = m_json_data["payload"]["devices"][address];
     state.raw = root["motor1Diagnostics"]["pwm"].asFloat() / 100;
     state.effort = root["motor1Diagnostics"]["current"].asDouble();
-    state.speed = root["motor1Diagnostics"]["rpm"].asFloat() * 2 * M_PI / 60;
 
     samples::Joints powered;
     powered.elements.push_back(state);
 
     state.raw = root["motor2Diagnostics"]["pwm"].asFloat() / 100;
     state.effort = root["motor2Diagnostics"]["current"].asDouble();
-    state.speed = root["motor2Diagnostics"]["rpm"].asFloat() * 2 * M_PI / 60;
     powered.elements.push_back(state);
 
     return powered;
