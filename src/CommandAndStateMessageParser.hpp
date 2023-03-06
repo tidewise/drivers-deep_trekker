@@ -39,6 +39,10 @@ namespace deep_trekker {
             std::string address,
             int model,
             CameraHeadCommand head);
+        std::string parseAuxLightCommandMessage(std::string api_version,
+            std::string address,
+            int model,
+            double intensity);
 
         base::Time getTimeUsage(std::string address);
 
@@ -75,7 +79,9 @@ namespace deep_trekker {
         bool isEStopEnabled(std::string address);
         bool isLeaking(std::string address);
         bool parseJSONMessage(char const* data, std::string& errors);
-        void validateFieldPresent(Json::Value const& value, std::string const& fieldName);
+        void validateFieldPresent(Json::Value const& value,
+            std::string const& fieldName,
+            std::string const& context);
 
         void validateMotorOverCurrentStates(std::string motor_field_name,
             std::string device_id);

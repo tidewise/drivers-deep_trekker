@@ -17,10 +17,13 @@ bool CommandAndStateMessageParser::parseJSONMessage(char const* data, string& er
 }
 
 void CommandAndStateMessageParser::validateFieldPresent(Json::Value const& value,
-    string const& fieldName)
+    string const& fieldName,
+    string const& context)
 {
     if (!value.isMember(fieldName)) {
-        throw invalid_argument("message does not contain the " + fieldName + " field");
+        throw invalid_argument(context +
+                               " validation failed: message does not contain the " +
+                               fieldName + " field");
     }
 }
 
@@ -28,125 +31,156 @@ void CommandAndStateMessageParser::validateMotorOverCurrentStates(string motor_f
     string device_id)
 {
     validateFieldPresent(m_json_data["payload"]["devices"][device_id][motor_field_name],
-        "overcurrent");
+        "overcurrent",
+        motor_field_name);
 }
 
 void CommandAndStateMessageParser::validateBatteryStates(string battery_field_name,
     string device_id)
 {
     auto battery = m_json_data["payload"]["devices"][device_id][battery_field_name];
-    validateFieldPresent(battery, "percent");
-    validateFieldPresent(battery, "voltage");
+    validateFieldPresent(battery, "percent", battery_field_name);
+    validateFieldPresent(battery, "voltage", battery_field_name);
 }
 
 void CommandAndStateMessageParser::validateAuxLightIntensity(string device_id)
 {
     validateFieldPresent(m_json_data["payload"]["devices"][device_id]["auxLight"],
-        "intensity");
+        "intensity",
+        "auxLight");
 }
 
 void CommandAndStateMessageParser::validateDepthAttitude(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "depth");
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "roll");
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "pitch");
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "heading");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "depth",
+        device_id);
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "roll", device_id);
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "pitch",
+        device_id);
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "heading",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateMotorStates(string device_id,
     string motor_field_name)
 {
     auto root = m_json_data["payload"]["devices"][device_id][motor_field_name];
-    validateFieldPresent(root, "pwm");
-    validateFieldPresent(root, "current");
-    validateFieldPresent(root, "rpm");
+    validateFieldPresent(root, "pwm", motor_field_name);
+    validateFieldPresent(root, "current", motor_field_name);
+    validateFieldPresent(root, "rpm", motor_field_name);
 }
 
 void CommandAndStateMessageParser::validatePoweredReelMotorState(string device_id)
 {
     auto root = m_json_data["payload"]["devices"][device_id]["motor1Diagnostics"];
-    validateFieldPresent(root, "pwm");
-    validateFieldPresent(root, "current");
+    validateFieldPresent(root, "pwm", "motor1Diagnostics");
+    validateFieldPresent(root, "current", "motor1Diagnostics");
     root = m_json_data["payload"]["devices"][device_id]["motor2Diagnostics"];
-    validateFieldPresent(root, "pwm");
-    validateFieldPresent(root, "current");
+    validateFieldPresent(root, "pwm", "motor2Diagnostics");
+    validateFieldPresent(root, "current", "motor2Diagnostics");
 }
 
 void CommandAndStateMessageParser::validateGrabberMotorsStates(string device_id)
 {
     auto grabber = m_json_data["payload"]["devices"][device_id]["grabber"];
-    validateFieldPresent(grabber["openCloseMotorDiagnostics"], "overcurrent");
+    validateFieldPresent(grabber["openCloseMotorDiagnostics"],
+        "overcurrent",
+        "grabber openCloseMotorDiagnostics");
     validateMotorStates(device_id, "openCloseMotorDiagnostics");
     validateMotorStates(device_id, "rotateMotorDiagnostics");
-    validateFieldPresent(grabber["rotateMotorDiagnostics"], "overcurrent");
+    validateFieldPresent(grabber["rotateMotorDiagnostics"],
+        "overcurrent",
+        "grabber rotateMotorDiagnostics");
 }
 
 void CommandAndStateMessageParser::validateCameraHeadStates(string device_id)
 {
     auto camera_head = m_json_data["payload"]["devices"][device_id]["cameraHead"];
-    validateFieldPresent(camera_head["light"], "intensity");
-    validateFieldPresent(camera_head["lasers"], "enabled");
-    validateFieldPresent(camera_head["tilt"], "position");
-    validateFieldPresent(camera_head["tiltMotorDiagnostics"], "overcurrent");
-    validateFieldPresent(camera_head["tiltMotorDiagnostics"], "pwm");
-    validateFieldPresent(camera_head["tiltMotorDiagnostics"], "rpm");
-    validateFieldPresent(camera_head["tiltMotorDiagnostics"], "current");
-    validateFieldPresent(camera_head, "leak");
+    validateFieldPresent(camera_head["light"], "intensity", "cameraHead light");
+    validateFieldPresent(camera_head["lasers"], "enabled", "cameraHead lasers");
+    validateFieldPresent(camera_head["tilt"], "position", "cameraHead tilt");
+    validateFieldPresent(camera_head, "leak", "cameraHead");
+    validateFieldPresent(camera_head["tiltMotorDiagnostics"],
+        "overcurrent",
+        "cameraHead tiltMotorDiagnostics");
+    validateFieldPresent(camera_head["tiltMotorDiagnostics"],
+        "pwm",
+        "cameraHead tiltMotorDiagnostics");
+    validateFieldPresent(camera_head["tiltMotorDiagnostics"],
+        "rpm",
+        "cameraHead tiltMotorDiagnostics");
+    validateFieldPresent(camera_head["tiltMotorDiagnostics"],
+        "current",
+        "cameraHead tiltMotorDiagnostics");
 }
 
 void CommandAndStateMessageParser::validateCameras(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "cameras");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "cameras",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateCPUTemperature(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "cpuTemp");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "cpuTemp",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateDriveStates(string device_id)
 {
     auto thrust = m_json_data["payload"]["devices"][device_id]["drive"]["thrust"];
-    validateFieldPresent(thrust, "forward");
-    validateFieldPresent(thrust, "lateral");
-    validateFieldPresent(thrust, "vertical");
-    validateFieldPresent(thrust, "yaw");
+    validateFieldPresent(thrust, "forward", "drive thrust");
+    validateFieldPresent(thrust, "lateral", "drive thrust");
+    validateFieldPresent(thrust, "vertical", "drive thrust");
+    validateFieldPresent(thrust, "yaw", "drive thrust");
 }
 
 void CommandAndStateMessageParser::validateDriveModes(string device_id)
 {
     auto modes = m_json_data["payload"]["devices"][device_id]["drive"]["modes"];
-    validateFieldPresent(modes, "autoStabilization");
-    validateFieldPresent(modes, "motorsDisabled");
-    validateFieldPresent(modes, "altitudeLock");
-    validateFieldPresent(modes, "depthLock");
-    validateFieldPresent(modes, "headingLock");
+    validateFieldPresent(modes, "autoStabilization", "drive modes");
+    validateFieldPresent(modes, "motorsDisabled", "drive modes");
+    validateFieldPresent(modes, "altitudeLock", "drive modes");
+    validateFieldPresent(modes, "depthLock", "drive modes");
+    validateFieldPresent(modes, "headingLock", "drive modes");
 }
 
 void CommandAndStateMessageParser::validateLeaking(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "leak");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "leak", device_id);
 }
 
 void CommandAndStateMessageParser::validateACConnected(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "acConnected");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "acConnected",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateEStop(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "eStop");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "eStop",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateDistance(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "distance");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
+        "distance",
+        device_id);
 }
 
 void CommandAndStateMessageParser::validateTimeUsage(string device_id)
 {
     validateFieldPresent(m_json_data["payload"]["devices"][device_id]["usageTime"],
-        "currentSeconds");
+        "currentSeconds",
+        "usageTime");
 }
 
 void CommandAndStateMessageParser::validateRevolutionMotorStates(string device_id)
@@ -159,9 +193,9 @@ void CommandAndStateMessageParser::validateRevolutionMotorStates(string device_i
         "verticalLeftMotorDiagnostics",
         "verticalRightMotorDiagnostics"};
     for (auto motor : motors) {
-        validateFieldPresent(device[motor], "pwm");
-        validateFieldPresent(device[motor], "current");
-        validateFieldPresent(device[motor], "rpm");
+        validateFieldPresent(device[motor], "pwm", motor);
+        validateFieldPresent(device[motor], "current", motor);
+        validateFieldPresent(device[motor], "rpm", motor);
     }
 }
 
@@ -261,6 +295,19 @@ string CommandAndStateMessageParser::parseCameraHeadCommandMessage(string api_ve
     camera_head["light"]["intensity"] = min(max(head.light, 0.0), 1.0) * 100;
     camera_head["lasers"]["enabled"] = head.laser;
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
+
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseAuxLightCommandMessage(string api_version,
+    string address,
+    int model,
+    double intensity)
+{
+    auto message = payloadSetMessageTemplate(api_version, address, model);
+    message["payload"]["devices"][address]["auxLight"]["intensity"] =
+        min(max(intensity, 0.0), 1.0) * 100;
 
     Json::FastWriter fast;
     return fast.write(message);
@@ -435,8 +482,9 @@ Grabber CommandAndStateMessageParser::getGrabberMotorStates(string address)
 {
     validateGrabberMotorsStates(address);
     Grabber grabber;
-    auto root = m_json_data["payload"]["devices"][address]["openCloseMotorDiagnostics"]
-                           ["grabber"];
+    auto root = m_json_data["payload"]["devices"][address]["grabber"]
+                           ["openCloseMotorDiagnostics"];
+
     JointState open_close_joint_state = motorDiagnosticsToJointState(root);
     samples::Joints motors;
     grabber.motor_states.elements.push_back(open_close_joint_state);

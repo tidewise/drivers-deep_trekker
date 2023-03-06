@@ -188,9 +188,7 @@ namespace deep_trekker {
         bool rear_left_motor_overcurrent;
         bool vertical_right_motor_overcurrent;
         bool vertical_left_motor_overcurrent;
-        Grabber grabber;
         DriveMode drive_modes;
-        TiltCameraHead camera_head;
         std::vector<Camera> cameras;
         base::Time usage_time;
         power_base::BatteryStatus left_battery;
