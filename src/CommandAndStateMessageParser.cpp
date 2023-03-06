@@ -45,6 +45,14 @@ void CommandAndStateMessageParser::validateAuxLightIntensity(string device_id)
         "intensity");
 }
 
+void CommandAndStateMessageParser::validateDepthAttitude(string device_id)
+{
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "depth");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "roll");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "pitch");
+    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "heading");
+}
+
 void CommandAndStateMessageParser::validateMotorStates(string device_id,
     string motor_field_name)
 {
@@ -194,85 +202,19 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     string api_version,
     string address,
     int model,
-    MotionAndLightCommand command)
+    commands::LinearAngular6DCommand command)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto root = message["payload"]["devices"][address];
 
     auto thrust = root["drive"]["thrust"];
-    thrust["forward"] = command.vehicle_setpoint.linear[0];
-    thrust["lateral"] = command.vehicle_setpoint.linear[1];
-    thrust["vertical"] = command.vehicle_setpoint.linear[2];
-    thrust["yaw"] = command.vehicle_setpoint.angular[2];
+    thrust["forward"] = command.linear[0];
+    thrust["lateral"] = command.linear[1];
+    thrust["vertical"] = command.linear[2];
+    thrust["yaw"] = command.angular[2];
     root["drive"]["thrust"] = thrust;
 
     message["payload"]["devices"][address] = root;
-    Json::FastWriter fast;
-    return fast.write(message);
-}
-
-string CommandAndStateMessageParser::parsePositionRevolutionCommandMessage(
-    string api_version,
-    string address,
-    MotionAndLightCommand command)
-{
-    Json::Value message;
-    message["apiVersion"] = api_version;
-    message["method"] = "SET";
-    message["payload"]["devices"][address]["auxLights"] =
-        min(max(command.light, 0.0), 1.0) * 100;
-    auto local_frame = message["payload"]["devices"][address]["control"]["setpoint"]
-                              ["pose"]["localFrame"];
-    local_frame["x"] = command.vehicle_setpoint.linear[0];
-    local_frame["y"] = command.vehicle_setpoint.linear[1];
-    local_frame["z"] = command.vehicle_setpoint.linear[2];
-    local_frame["yaw"] = command.vehicle_setpoint.angular[2];
-    message["payload"]["devices"][address]["control"]["setpoint"]["pose"]["localFrame"] =
-        local_frame;
-
-    Json::FastWriter fast;
-    return fast.write(message);
-}
-
-string CommandAndStateMessageParser::parseVelocityRevolutionCommandMessage(
-    string api_version,
-    string address,
-    MotionAndLightCommand command)
-{
-    Json::Value message;
-    message["apiVersion"] = api_version;
-    message["method"] = "SET";
-    message["payload"]["devices"][address]["auxLights"] =
-        min(max(command.light, 0.0), 1.0) * 100;
-    auto vel = message["payload"]["devices"][address]["control"]["setpoint"]["velocity"];
-    vel["x"] = command.vehicle_setpoint.linear[0];
-    vel["y"] = command.vehicle_setpoint.linear[1];
-    vel["z"] = command.vehicle_setpoint.linear[2];
-    vel["yaw"] = command.vehicle_setpoint.angular[2];
-    message["payload"]["devices"][address]["control"]["setpoint"]["velocity"] = vel;
-
-    Json::FastWriter fast;
-    return fast.write(message);
-}
-
-string CommandAndStateMessageParser::parseAccelerationRevolutionCommandMessage(
-    string api_version,
-    string address,
-    MotionAndLightCommand command)
-{
-    Json::Value message;
-    message["apiVersion"] = api_version;
-    message["method"] = "SET";
-    message["payload"]["devices"][address]["auxLights"] =
-        min(max(command.light, 0.0), 1.0) * 100;
-    auto acc =
-        message["payload"]["devices"][address]["control"]["setpoint"]["acceleration"];
-    acc["x"] = command.vehicle_setpoint.linear[0];
-    acc["y"] = command.vehicle_setpoint.linear[1];
-    acc["z"] = command.vehicle_setpoint.linear[2];
-    acc["yaw"] = command.vehicle_setpoint.angular[2];
-    message["payload"]["devices"][address]["control"]["setpoint"]["acceleration"] = acc;
-
     Json::FastWriter fast;
     return fast.write(message);
 }
@@ -308,17 +250,30 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(string api_versi
     return fast.write(message);
 }
 
+string CommandAndStateMessageParser::parseCameraHeadCommandMessage(string api_version,
+    string address,
+    int model,
+    CameraHeadCommand head)
+{
+    auto message = payloadSetMessageTemplate(api_version, address, model);
+    auto camera_head = message["payload"]["devices"][address]["cameraHead"];
+    camera_head["model"] = model;
+    camera_head["light"]["intensity"] = min(max(head.light, 0.0), 1.0) * 100;
+    camera_head["lasers"]["enabled"] = head.laser;
+    message["payload"]["devices"][address]["cameraHead"] = camera_head;
+
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
 string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string api_version,
     string address,
     int model,
-    CameraHeadCommand head,
     samples::Joints tilt)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
     camera_head["model"] = model;
-    camera_head["lights"] = min(max(head.light, 0.0), 1.0) * 100;
-    camera_head["lasers"] = head.laser;
     camera_head["tilt"]["speed"] =
         min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
@@ -336,36 +291,6 @@ Time CommandAndStateMessageParser::getTimeUsage(string address)
     return Time::fromSeconds(time);
 }
 
-void CommandAndStateMessageParser::getDevicesID(DevicesModel const& models,
-    DevicesID& ids)
-{
-    auto devices = m_json_data["payload"]["devices"];
-    for (auto key : devices.getMemberNames()) {
-        auto model = (devices[key]["model"].asInt());
-        if (model == models.revolution && ids.revolution.empty()) {
-            ids.revolution = key;
-        }
-        if (model == models.manual_reel && ids.manual_reel.empty()) {
-            ids.manual_reel = key;
-        }
-        if (model == models.powered_reel && ids.powered_reel.empty()) {
-            ids.powered_reel = key;
-        }
-    }
-    if (ids.revolution.empty() || !devices[ids.revolution].isMember("cameras")) {
-        return;
-    }
-
-    auto cameras = devices[ids.revolution]["cameras"];
-    for (auto key : cameras.getMemberNames()) {
-        if (cameras[key]["model"] == models.camera) {
-            ids.camera = key;
-            ids.streams = cameras["streams"].getMemberNames();
-            break;
-        }
-    }
-};
-
 vector<Camera> CommandAndStateMessageParser::getCameras(string address)
 {
     validateCameras(address);
@@ -378,6 +303,7 @@ vector<Camera> CommandAndStateMessageParser::getCameras(string address)
     auto cameras_json = revolution_json["cameras"];
     for (auto camera_id : cameras_json.getMemberNames()) {
         Camera cam;
+        cam.timestamp = Time::now();
         cam.id = camera_id;
         cam.ip = cameras_json[camera_id]["ip"].asString();
         cam.type = cameras_json[camera_id]["type"].asString();
@@ -417,6 +343,7 @@ DriveMode CommandAndStateMessageParser::getRevolutionDriveModes(string address)
     validateDriveModes(address);
     DriveMode drive_mode;
     auto root = m_json_data["payload"]["devices"][address]["drive"]["modes"];
+    drive_mode.timestamp = Time::now();
     drive_mode.auto_stabilization = root["autoStabilization"].asBool();
     drive_mode.heading_lock = root["headingLock"].asBool();
     drive_mode.depth_lock = root["depthLock"].asBool();
@@ -425,23 +352,23 @@ DriveMode CommandAndStateMessageParser::getRevolutionDriveModes(string address)
     return drive_mode;
 }
 
-samples::RigidBodyState CommandAndStateMessageParser::getRevolutionBodyStates(
+samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude(
     string address)
 {
-    auto local_frame = m_json_data["payload"]["devices"][address]["control"]["current"]
-                                  ["pose"]["localFrame"];
-    double state_x = local_frame["x"].asDouble();
-    double state_y = local_frame["y"].asDouble();
-    double state_z = local_frame["z"].asDouble();
-    double state_yaw = local_frame["yaw"].asDouble();
+    validateDepthAttitude(address);
+    auto local_frame = m_json_data["payload"]["devices"][address];
+    double state_z = local_frame["depth"].asDouble();
+    double roll = local_frame["roll"].asDouble();
+    double pitch = local_frame["pitch"].asDouble();
+    double yaw = local_frame["heading"].asDouble();
 
-    samples::RigidBodyState control;
-    control.position.x() = state_x;
-    control.position.y() = state_y;
-    control.position.z() = state_z;
-    control.orientation = Quaterniond(AngleAxisd(state_yaw, Vector3d::UnitZ()));
+    samples::RigidBodyState pose;
+    pose.position.z() = state_z;
+    pose.orientation = AngleAxisd(roll, Vector3d::UnitX()) *
+                       AngleAxisd(pitch, Vector3d::UnitY()) *
+                       AngleAxisd(yaw, Vector3d::UnitZ());
 
-    return control;
+    return pose;
 }
 
 samples::Joints CommandAndStateMessageParser::getPoweredReelMotorState(string address)
@@ -562,7 +489,7 @@ bool CommandAndStateMessageParser::getMotorOvercurrentStates(string address,
 double CommandAndStateMessageParser::getAuxLightIntensity(string address)
 {
     validateAuxLightIntensity(address);
-    return m_json_data["payload"]["devices"][address]["auxLights"]["intensity"]
+    return m_json_data["payload"]["devices"][address]["auxLight"]["intensity"]
                .asDouble() /
            100;
 }

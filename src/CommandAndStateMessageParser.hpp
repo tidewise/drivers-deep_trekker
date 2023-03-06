@@ -23,16 +23,7 @@ namespace deep_trekker {
         std::string parseDriveRevolutionCommandMessage(std::string api_version,
             std::string address,
             int model,
-            MotionAndLightCommand command);
-        std::string parsePositionRevolutionCommandMessage(std::string api_version,
-            std::string address,
-            MotionAndLightCommand command);
-        std::string parseVelocityRevolutionCommandMessage(std::string api_version,
-            std::string address,
-            MotionAndLightCommand command);
-        std::string parseAccelerationRevolutionCommandMessage(std::string api_version,
-            std::string address,
-            MotionAndLightCommand command);
+            base::commands::LinearAngular6DCommand command);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
             int model,
@@ -43,10 +34,13 @@ namespace deep_trekker {
         std::string parseTiltCameraHeadCommandMessage(std::string api_version,
             std::string address,
             int model,
-            CameraHeadCommand head,
             base::samples::Joints tilt);
+        std::string parseCameraHeadCommandMessage(std::string api_version,
+            std::string address,
+            int model,
+            CameraHeadCommand head);
+
         base::Time getTimeUsage(std::string address);
-        void getDevicesID(DevicesModel const& models, DevicesID& ids);
 
         Grabber getGrabberMotorOvercurrentStates(std::string address);
         power_base::BatteryStatus getBatteryStates(std::string address,
@@ -59,7 +53,7 @@ namespace deep_trekker {
         /**
          * @see RevolutionBodyStates
          */
-        base::samples::RigidBodyState getRevolutionBodyStates(std::string address);
+        base::samples::RigidBodyState getRevolutionPoseZAttitude(std::string address);
         /**
          * @see GrabberMotorStates
          */
@@ -87,13 +81,12 @@ namespace deep_trekker {
             std::string device_id);
         void validateBatteryStates(std::string battery_field_name, std::string device_id);
         void validateAuxLightIntensity(std::string device_id);
-        void validateGrabberMotorOvercurrent(std::string device_id);
+        void validateDepthAttitude(std::string device_id);
         void validateCameraHeadStates(std::string device_id);
         void validateCameras(std::string device_id);
         void validateCPUTemperature(std::string device_id);
         void validateDriveStates(std::string device_id);
         void validateDriveModes(std::string device_id);
-        void validateCalibration(std::string device_id);
         void validateLeaking(std::string device_id);
         void validateACConnected(std::string device_id);
         void validateEStop(std::string device_id);
