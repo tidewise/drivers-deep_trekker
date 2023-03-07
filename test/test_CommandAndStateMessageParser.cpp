@@ -108,7 +108,7 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
     joint_state.speed = -0.4;
     tilt.elements.push_back(joint_state);
     string message =
-        parser.parseTiltCameraHeadCommandMessage(api_version, address, 102, tilt);
+        parser.parseTiltCameraHeadCommandMessage(api_version, address, 13, 102, tilt);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -128,8 +128,8 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
 {
     auto parser = getMessageParser();
     base::commands::LinearAngular6DCommand command;
-    command.linear = Eigen::Vector3d(4.2, 42, 6.1);
-    command.angular = Eigen::Vector3d(0, 0, 1.2);
+    command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
+    command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message =
         parser.parseDriveRevolutionCommandMessage(api_version, address, 102, command);
 
@@ -146,10 +146,10 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
     ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 102);
 
     auto drive = json_value["payload"]["devices"][address]["drive"];
-    ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4.2);
+    ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
     ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), 42);
-    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 6.1);
-    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), 1.2);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 6);
+    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), 1);
 }
 
 TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)
@@ -316,19 +316,10 @@ TEST_F(MessageParserTest, it_returns_the_camera_head_state)
     expected.laser = true;
     expected.motor_overcurrent = true;
     expected.leak = false;
-    expected.tilt.orientation = Quaterniond(AngleAxisd(M_PI / 2, Vector3d::UnitZ()));
-    JointState expected_joint;
-    expected_joint.raw = 0.8;
-    expected_joint.speed = 2.093;
-    expected_joint.effort = 60;
     ASSERT_NEAR(expected.light, actual.light, 0.01);
     ASSERT_EQ(expected.laser, actual.laser);
     ASSERT_EQ(expected.motor_overcurrent, actual.motor_overcurrent);
     ASSERT_EQ(expected.leak, actual.leak);
-    ASSERT_NEAR(getYaw(expected.tilt.orientation), getYaw(actual.tilt.orientation), 0.01);
-    ASSERT_NEAR(expected_joint.raw, actual.motor_states.elements[0].raw, 0.01);
-    ASSERT_NEAR(expected_joint.speed, actual.motor_states.elements[0].speed, 0.01);
-    ASSERT_NEAR(expected_joint.effort, actual.motor_states.elements[0].effort, 0.01);
 }
 
 TEST_F(MessageParserTest, it_returns_the_powered_reel_motor_states)

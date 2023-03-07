@@ -33,7 +33,8 @@ namespace deep_trekker {
             base::samples::Joints command);
         std::string parseTiltCameraHeadCommandMessage(std::string api_version,
             std::string address,
-            int model,
+            int rev_model,
+            int camera_head_model,
             base::samples::Joints tilt);
         std::string parseCameraHeadCommandMessage(std::string api_version,
             std::string address,
@@ -49,6 +50,7 @@ namespace deep_trekker {
         Grabber getGrabberMotorOvercurrentStates(std::string address);
         power_base::BatteryStatus getBatteryStates(std::string address,
             std::string battery_side);
+        base::samples::Joints getCameraHeadTiltMotorState(std::string address);
         TiltCameraHead getCameraHeadStates(std::string address);
         std::vector<Camera> getCameras(std::string address);
 

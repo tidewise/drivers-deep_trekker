@@ -30,6 +30,11 @@ namespace deep_trekker {
         int camera_head;
     };
 
+    struct CameraHeadLimits {
+        double lower;
+        double upper;
+    };
+
     /**
      *  ratio (Represented as a multiplier, 1x zoom for fully zoomed out,
      *  higher values when zoomed in (3x, 12.3x, 20x, etc..))
@@ -86,7 +91,6 @@ namespace deep_trekker {
         bool laser;
         bool motor_overcurrent;
         bool leak;
-        base::samples::RigidBodyState tilt;
         base::samples::Joints motor_states;
     };
 

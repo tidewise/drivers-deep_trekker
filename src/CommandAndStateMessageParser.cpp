@@ -242,10 +242,10 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     auto root = message["payload"]["devices"][address];
 
     auto thrust = root["drive"]["thrust"];
-    thrust["forward"] = command.linear[0];
-    thrust["lateral"] = command.linear[1];
-    thrust["vertical"] = command.linear[2];
-    thrust["yaw"] = command.angular[2];
+    thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
+    thrust["lateral"] = round(min(max(command.linear.y(), -1.0), 1.0) * 100);
+    thrust["vertical"] = round(min(max(command.z(), -1.0), 1.0) * 100);
+    thrust["yaw"] = round(min(max(command.angular.z(), -1.0), 1.0) * 100);
     root["drive"]["thrust"] = thrust;
 
     message["payload"]["devices"][address] = root;
@@ -261,7 +261,7 @@ string CommandAndStateMessageParser::parsePoweredReelCommandMessage(string api_v
     Json::Value message = payloadSetMessageTemplate(api_version, address, model);
     auto root = message["payload"]["devices"][address];
     root["speed"] =
-        min(max(static_cast<double>(command.elements[0].speed), -1.0), 1.0) * 100;
+        round(min(max(static_cast<double>(command.elements[0].speed), -1.0), 1.0) * 100);
     message["payload"]["devices"][address] = root;
 
     Json::FastWriter fast;
@@ -315,14 +315,15 @@ string CommandAndStateMessageParser::parseAuxLightCommandMessage(string api_vers
 
 string CommandAndStateMessageParser::parseTiltCameraHeadCommandMessage(string api_version,
     string address,
-    int model,
+    int rev_model,
+    int camera_head_model,
     samples::Joints tilt)
 {
-    auto message = payloadSetMessageTemplate(api_version, address, model);
+    auto message = payloadSetMessageTemplate(api_version, address, rev_model);
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
-    camera_head["model"] = model;
+    camera_head["model"] = camera_head_model;
     camera_head["tilt"]["speed"] =
-        min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100;
+        round(min(max(static_cast<double>(tilt.elements[0].speed), -1.0), 1.0) * 100);
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
 
     Json::FastWriter fast;
@@ -509,12 +510,21 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadStates(string address)
     camera_head.laser = root["lasers"]["enabled"].asBool();
     camera_head.motor_overcurrent = root["tiltMotorDiagnostics"]["overcurrent"].asBool();
     camera_head.leak = root["leak"].asBool();
-    camera_head.tilt.orientation = Quaterniond(
-        AngleAxisd(root["tilt"]["position"].asDouble() * M_PI / 180, Vector3d::UnitZ()));
 
-    JointState joint_state = motorDiagnosticsToJointState(root["tiltMotorDiagnostics"]);
-    camera_head.motor_states.elements.push_back(joint_state);
     return camera_head;
+}
+
+samples::Joints CommandAndStateMessageParser::getCameraHeadTiltMotorState(string address)
+{
+    validateCameraHeadStates(address);
+    auto root = m_json_data["payload"]["devices"][address]["cameraHead"];
+
+    samples::Joints motor_states;
+    motor_states.time = Time::now();
+    JointState joint_state = motorDiagnosticsToJointState(root["tiltMotorDiagnostics"]);
+    joint_state.position = root["tilt"]["position"].asDouble() * M_PI / 180;
+    motor_states.elements.push_back(joint_state);
+    return motor_states;
 }
 
 JointState CommandAndStateMessageParser::motorDiagnosticsToJointState(Json::Value value)
