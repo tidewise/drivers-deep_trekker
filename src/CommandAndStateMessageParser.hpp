@@ -23,7 +23,8 @@ namespace deep_trekker {
         std::string parseDriveRevolutionCommandMessage(std::string api_version,
             std::string address,
             int model,
-            base::commands::LinearAngular6DCommand command);
+            base::commands::LinearAngular6DCommand command,
+            double minimum_vertical_command);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
             int model,

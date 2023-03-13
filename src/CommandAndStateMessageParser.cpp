@@ -236,15 +236,19 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     string api_version,
     string address,
     int model,
-    commands::LinearAngular6DCommand command)
+    commands::LinearAngular6DCommand command,
+    double minimum_vertical_command)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto root = message["payload"]["devices"][address];
 
+    auto vertical_cmd_sign = command.z() / abs(command.z());
+    auto vertical_cmd =
+        max(abs(command.z()), minimum_vertical_command) * vertical_cmd_sign;
     auto thrust = root["drive"]["thrust"];
     thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
     thrust["lateral"] = round(min(max(command.linear.y(), -1.0), 1.0) * 100);
-    thrust["vertical"] = round(min(max(command.z(), -1.0), 1.0) * 100);
+    thrust["vertical"] = round(min(max(vertical_cmd, -1.0), 1.0) * 100);
     thrust["yaw"] = round(min(max(command.angular.z(), -1.0), 1.0) * 100);
     root["drive"]["thrust"] = thrust;
 
@@ -406,9 +410,9 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude
     validateDepthAttitude(address);
     auto local_frame = m_json_data["payload"]["devices"][address];
     double state_z = local_frame["depth"].asDouble();
-    double roll = local_frame["roll"].asDouble();
-    double pitch = local_frame["pitch"].asDouble();
-    double yaw = local_frame["heading"].asDouble();
+    double roll = local_frame["roll"].asDouble() * M_PI / 180;
+    double pitch = -local_frame["pitch"].asDouble() * M_PI / 180;
+    double yaw = local_frame["heading"].asDouble() * M_PI / 180;
 
     samples::RigidBodyState pose;
     pose.position.z() = state_z;

@@ -131,7 +131,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message =
-        parser.parseDriveRevolutionCommandMessage(api_version, address, 102, command);
+        parser.parseDriveRevolutionCommandMessage(api_version, address, 102, command, 0);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
