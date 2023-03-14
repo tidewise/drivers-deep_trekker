@@ -65,7 +65,7 @@ namespace deep_trekker {
     };
 
     struct Camera {
-        base::Time timestamp;
+        base::Time time;
         std::string id;
         std::string ip;
         bool osd_enabled;
@@ -86,7 +86,7 @@ namespace deep_trekker {
      *    - max: +1
      */
     struct TiltCameraHead {
-        base::Time timestamp;
+        base::Time time;
         double light;
         bool laser;
         bool motor_overcurrent;
@@ -120,7 +120,7 @@ namespace deep_trekker {
      *  estop_enabled (physical button state)
      */
     struct PoweredReel {
-        base::Time timestamp;
+        base::Time time;
         bool leak;
         bool estop_enabled;
         bool ac_power_connected;
@@ -169,7 +169,7 @@ namespace deep_trekker {
     typedef base::samples::RigidBodyState RevolutionBodyStates;
 
     struct DriveMode {
-        base::Time timestamp;
+        base::Time time;
         bool altitude_lock;
         bool depth_lock;
         bool auto_stabilization;
@@ -184,7 +184,7 @@ namespace deep_trekker {
      *  setpoint and state in local frame
      */
     struct Revolution {
-        base::Time timestamp;
+        base::Time time;
         double aux_light;
         bool front_right_motor_overcurrent;
         bool front_left_motor_overcurrent;

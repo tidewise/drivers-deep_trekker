@@ -3,6 +3,7 @@
 
 using namespace std;
 using namespace base;
+using namespace base::samples;
 using namespace power_base;
 using namespace deep_trekker;
 
@@ -288,16 +289,32 @@ string CommandAndStateMessageParser::parseGrabberCommandMessage(string api_versi
     return fast.write(message);
 }
 
-string CommandAndStateMessageParser::parseCameraHeadCommandMessage(string api_version,
+string CommandAndStateMessageParser::parseCameraHeadLightMessage(string api_version,
     string address,
     int model,
-    CameraHeadCommand head)
+    int camera_head_model,
+    double light_intensity)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
-    camera_head["model"] = model;
-    camera_head["light"]["intensity"] = min(max(head.light, 0.0), 1.0) * 100;
-    camera_head["lasers"]["enabled"] = head.laser;
+    camera_head["model"] = camera_head_model;
+    camera_head["light"]["intensity"] = min(max(light_intensity, 0.0), 1.0) * 100;
+    message["payload"]["devices"][address]["cameraHead"] = camera_head;
+
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseCameraHeadLaserMessage(string api_version,
+    string address,
+    int model,
+    int camera_head_model,
+    bool enabled)
+{
+    auto message = payloadSetMessageTemplate(api_version, address, model);
+    auto camera_head = message["payload"]["devices"][address]["cameraHead"];
+    camera_head["model"] = camera_head_model;
+    camera_head["laser"]["enabled"] = enabled;
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
 
     Json::FastWriter fast;
@@ -355,7 +372,7 @@ vector<Camera> CommandAndStateMessageParser::getCameras(string address)
     auto cameras_json = revolution_json["cameras"];
     for (auto camera_id : cameras_json.getMemberNames()) {
         Camera cam;
-        cam.timestamp = Time::now();
+        cam.time = Time::now();
         cam.id = camera_id;
         cam.ip = cameras_json[camera_id]["ip"].asString();
         cam.type = cameras_json[camera_id]["type"].asString();
@@ -395,7 +412,7 @@ DriveMode CommandAndStateMessageParser::getRevolutionDriveModes(string address)
     validateDriveModes(address);
     DriveMode drive_mode;
     auto root = m_json_data["payload"]["devices"][address]["drive"]["modes"];
-    drive_mode.timestamp = Time::now();
+    drive_mode.time = Time::now();
     drive_mode.auto_stabilization = root["autoStabilization"].asBool();
     drive_mode.heading_lock = root["headingLock"].asBool();
     drive_mode.depth_lock = root["depthLock"].asBool();
@@ -415,6 +432,7 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude
     double yaw = local_frame["heading"].asDouble() * M_PI / 180;
 
     samples::RigidBodyState pose;
+    pose.time = Time::now();
     pose.position.z() = state_z;
     pose.orientation = AngleAxisd(roll, Vector3d::UnitX()) *
                        AngleAxisd(pitch, Vector3d::UnitY()) *
@@ -433,6 +451,7 @@ samples::Joints CommandAndStateMessageParser::getPoweredReelMotorState(string ad
     state.effort = root["motor1Diagnostics"]["current"].asDouble();
 
     samples::Joints powered;
+    powered.time = Time::now();
     powered.elements.push_back(state);
 
     state.raw = root["motor2Diagnostics"]["pwm"].asFloat() / 100;
@@ -447,6 +466,7 @@ samples::Joints CommandAndStateMessageParser::getRevolutionMotorStates(string ad
     validateRevolutionMotorStates(address);
     auto root = m_json_data["payload"]["devices"][address];
     samples::Joints revolution;
+    revolution.time = Time::now();
 
     vector<string> motors{"frontRightMotorDiagnostics",
         "frontLeftMotorDiagnostics",
@@ -469,6 +489,7 @@ BatteryStatus CommandAndStateMessageParser::getBatteryStates(string address,
     validateBatteryStates(battery_side, address);
     auto battery_json = m_json_data["payload"]["devices"][address][battery_side];
     BatteryStatus battery;
+    battery.time = Time::now();
     battery.charge = battery_json["percent"].asDouble() / 100;
     battery.voltage = battery_json["voltage"].asDouble();
 
@@ -514,6 +535,7 @@ TiltCameraHead CommandAndStateMessageParser::getCameraHeadStates(string address)
     camera_head.laser = root["lasers"]["enabled"].asBool();
     camera_head.motor_overcurrent = root["tiltMotorDiagnostics"]["overcurrent"].asBool();
     camera_head.leak = root["leak"].asBool();
+    camera_head.time = Time::now();
 
     return camera_head;
 }
@@ -529,6 +551,19 @@ samples::Joints CommandAndStateMessageParser::getCameraHeadTiltMotorState(string
     joint_state.position = root["tilt"]["position"].asDouble() * M_PI / 180;
     motor_states.elements.push_back(joint_state);
     return motor_states;
+}
+
+RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
+    string address)
+{
+    validateCameraHeadStates(address);
+    auto root = m_json_data["payload"]["devices"][address]["cameraHead"];
+
+    RigidBodyState rbs;
+    rbs.time = Time::now();
+    auto pitch = root["tilt"]["position"].asDouble() * M_PI / 180;
+    rbs.orientation = AngleAxisd(pitch, Vector3d::UnitY());
+    return rbs;
 }
 
 JointState CommandAndStateMessageParser::motorDiagnosticsToJointState(Json::Value value)

@@ -34,17 +34,6 @@ namespace deep_trekker {
     };
 
     /**
-     *  light:
-     *   - min: 0
-     *   - max: 1
-     */
-    struct CameraHeadCommand {
-        base::Time time;
-        bool laser;
-        double light;
-    };
-
-    /**
      *  tilt_command (speed joint):
      *   - min: -1
      *   - max: +1

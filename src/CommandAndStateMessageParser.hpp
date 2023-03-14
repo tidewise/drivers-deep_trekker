@@ -37,10 +37,16 @@ namespace deep_trekker {
             int rev_model,
             int camera_head_model,
             base::samples::Joints tilt);
-        std::string parseCameraHeadCommandMessage(std::string api_version,
+        std::string parseCameraHeadLaserMessage(std::string api_version,
             std::string address,
             int model,
-            CameraHeadCommand head);
+            int camera_head_model,
+            bool enabled);
+        std::string parseCameraHeadLightMessage(std::string api_version,
+            std::string address,
+            int model,
+            int camera_head_model,
+            double intensity);
         std::string parseAuxLightCommandMessage(std::string api_version,
             std::string address,
             int model,
@@ -52,6 +58,7 @@ namespace deep_trekker {
         power_base::BatteryStatus getBatteryStates(std::string address,
             std::string battery_side);
         base::samples::Joints getCameraHeadTiltMotorState(std::string address);
+        base::samples::RigidBodyState getCameraHeadTiltMotorStateRBS(std::string address);
         TiltCameraHead getCameraHeadStates(std::string address);
         std::vector<Camera> getCameras(std::string address);
 

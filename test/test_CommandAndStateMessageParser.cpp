@@ -72,14 +72,12 @@ TEST_F(MessageParserTest, it_parse_grabber_command_message)
         command.elements[1].raw * 100);
 }
 
-TEST_F(MessageParserTest, it_parse_camera_head_command_message)
+TEST_F(MessageParserTest, it_parses_camera_head_light_command_message)
 {
     auto parser = getMessageParser();
-    CameraHeadCommand command;
-    command.laser = true;
-    command.light = 0.9;
+    auto light = 0.9;
     string message =
-        parser.parseCameraHeadCommandMessage(api_version, address, 102, command);
+        parser.parseCameraHeadLaserMessage(api_version, address, 13, 102, light);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -91,17 +89,38 @@ TEST_F(MessageParserTest, it_parse_camera_head_command_message)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["model"], 13);
     auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
-    ASSERT_EQ(camera_head["light"]["intensity"].asDouble(), command.light * 100);
-    ASSERT_EQ(camera_head["lasers"]["enabled"].asBool(), command.laser);
+    ASSERT_EQ(camera_head["model"], 102);
+    ASSERT_EQ(camera_head["light"]["intensity"].asDouble(), light * 100);
+}
+
+TEST_F(MessageParserTest, it_parses_camera_head_laser_command_message)
+{
+    auto parser = getMessageParser();
+    auto laser = true;
+    string message =
+        parser.parseCameraHeadLaserMessage(api_version, address, 13, 102, laser);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["model"], 13);
+    auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
+    ASSERT_EQ(camera_head["model"], 102);
+    ASSERT_EQ(camera_head["laser"]["enabled"].asBool(), true);
 }
 
 TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
 {
     auto parser = getMessageParser();
-    CameraHeadCommand command;
-    command.laser = true;
-    command.light = 0.9;
     base::samples::Joints tilt;
     JointState joint_state;
     joint_state.position = M_PI;
