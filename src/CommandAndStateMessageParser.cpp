@@ -428,15 +428,15 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude
     auto local_frame = m_json_data["payload"]["devices"][address];
     double state_z = local_frame["depth"].asDouble();
     double roll = local_frame["roll"].asDouble() * M_PI / 180;
-    double pitch = -local_frame["pitch"].asDouble() * M_PI / 180;
+    double pitch = local_frame["pitch"].asDouble() * M_PI / 180;
     double yaw = local_frame["heading"].asDouble() * M_PI / 180;
 
     samples::RigidBodyState pose;
     pose.time = Time::now();
-    pose.position.z() = state_z;
-    pose.orientation = AngleAxisd(roll, Vector3d::UnitX()) *
+    pose.position.z() = -state_z;
+    pose.orientation = AngleAxisd(yaw, Vector3d::UnitZ()) *
                        AngleAxisd(pitch, Vector3d::UnitY()) *
-                       AngleAxisd(yaw, Vector3d::UnitZ());
+                       AngleAxisd(roll, Vector3d::UnitX());
 
     return pose;
 }

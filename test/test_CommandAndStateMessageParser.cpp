@@ -41,6 +41,7 @@ TEST_F(MessageParserTest, it_parse_powered_reel_command_message)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 12);
     ASSERT_EQ(json_value["payload"]["devices"][address]["speed"].asFloat(),
         command.elements[0].speed * 100);
 }
@@ -77,7 +78,7 @@ TEST_F(MessageParserTest, it_parses_camera_head_light_command_message)
     auto parser = getMessageParser();
     auto light = 0.9;
     string message =
-        parser.parseCameraHeadLaserMessage(api_version, address, 13, 102, light);
+        parser.parseCameraHeadLightMessage(api_version, address, 13, 102, light);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -89,7 +90,7 @@ TEST_F(MessageParserTest, it_parses_camera_head_light_command_message)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
-    ASSERT_EQ(json_value["model"], 13);
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
     auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
     ASSERT_EQ(camera_head["model"], 102);
     ASSERT_EQ(camera_head["light"]["intensity"].asDouble(), light * 100);
@@ -112,7 +113,7 @@ TEST_F(MessageParserTest, it_parses_camera_head_laser_command_message)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
-    ASSERT_EQ(json_value["model"], 13);
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
     auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
     ASSERT_EQ(camera_head["model"], 102);
     ASSERT_EQ(camera_head["laser"]["enabled"].asBool(), true);
@@ -139,7 +140,9 @@ TEST_F(MessageParserTest, it_parse_tilt_camera_head_command_message)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
     auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
+    ASSERT_EQ(camera_head["model"], 102);
     ASSERT_EQ(camera_head["tilt"]["speed"].asFloat(), tilt.elements[0].speed * 100);
 }
 
@@ -150,7 +153,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message =
-        parser.parseDriveRevolutionCommandMessage(api_version, address, 102, command, 0);
+        parser.parseDriveRevolutionCommandMessage(api_version, address, 13, command, 0);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -162,7 +165,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
         &error);
     ASSERT_EQ(json_value["apiVersion"], api_version);
     ASSERT_EQ(json_value["method"], "SET");
-    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 102);
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
 
     auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
@@ -255,22 +258,22 @@ TEST_F(MessageParserTest, it_throws_an_invalid_argument_error_when_the_field_isn
 TEST_F(MessageParserTest, it_returns_the_rov_pose_with_z_and_attitude)
 {
     auto parser = getMessageParser();
-    Json::Value drive_modes;
-    drive_modes["payload"]["devices"]["revolution_id123"]["model"] = 13;
-    drive_modes["payload"]["devices"]["revolution_id123"]["depth"] = 20;
-    drive_modes["payload"]["devices"]["revolution_id123"]["roll"] = 1.5;
-    drive_modes["payload"]["devices"]["revolution_id123"]["pitch"] = 3.14;
-    drive_modes["payload"]["devices"]["revolution_id123"]["heading"] = 2;
+    Json::Value pose_info;
+    pose_info["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    pose_info["payload"]["devices"]["revolution_id123"]["depth"] = 20;
+    pose_info["payload"]["devices"]["revolution_id123"]["roll"] = 20.0;
+    pose_info["payload"]["devices"]["revolution_id123"]["pitch"] = 10.0;
+    pose_info["payload"]["devices"]["revolution_id123"]["heading"] = 90.0;
     Json::FastWriter writer;
     string errors;
-    parser.parseJSONMessage(writer.write(drive_modes).c_str(), errors);
+    parser.parseJSONMessage(writer.write(pose_info).c_str(), errors);
     auto actual = parser.getRevolutionPoseZAttitude("revolution_id123");
     auto euler = actual.orientation.toRotationMatrix().eulerAngles(0, 1, 2);
 
-    ASSERT_NEAR(20, actual.position.z(), 0.01);
-    ASSERT_NEAR(1.5, euler[0], 0.01);
-    ASSERT_NEAR(3.14, euler[1], 0.01);
-    ASSERT_NEAR(2, euler[2], 0.01);
+    ASSERT_NEAR(-20, actual.position.z(), 0.01);
+    ASSERT_NEAR(0.349, getRoll(actual.orientation), 0.01);
+    ASSERT_NEAR(1.5708, getYaw(actual.orientation), 0.01);
+    ASSERT_NEAR(0.1745, getPitch(actual.orientation), 0.01);
 }
 
 TEST_F(MessageParserTest, it_returns_the_drive_mode)
