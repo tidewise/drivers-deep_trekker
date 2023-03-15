@@ -125,6 +125,27 @@ void CommandAndStateMessageParser::validateCameras(string device_id)
         device_id);
 }
 
+void CommandAndStateMessageParser::validateCameraFields(string device_id,
+    string camera_id)
+{
+    auto json = m_json_data["payload"]["devices"][device_id]["cameras"][camera_id];
+    validateFieldPresent(json, "ip", camera_id);
+    validateFieldPresent(json, "model", camera_id);
+    validateFieldPresent(json, "type", camera_id);
+    validateFieldPresent(json, "osd", camera_id);
+    validateFieldPresent(json["osd"], "enabled", camera_id);
+    validateFieldPresent(json, "streams", camera_id);
+}
+
+void CommandAndStateMessageParser::validateStreamFields(string device_id,
+    string camera_id,
+    string stream_id)
+{
+    auto json = m_json_data["payload"]["devices"][device_id]["cameras"][camera_id]
+                           ["streams"][stream_id];
+    validateFieldPresent(json, "active", stream_id);
+}
+
 void CommandAndStateMessageParser::validateCPUTemperature(string device_id)
 {
     validateFieldPresent(m_json_data["payload"]["devices"][device_id],
@@ -364,13 +385,9 @@ vector<Camera> CommandAndStateMessageParser::getCameras(string address)
 {
     validateCameras(address);
     vector<Camera> cameras;
-    auto revolution_json = m_json_data["payload"]["devices"][address];
-    if (!revolution_json.isMember("cameras")) {
-        return cameras;
-    }
-
-    auto cameras_json = revolution_json["cameras"];
+    auto cameras_json = m_json_data["payload"]["devices"][address]["cameras"];
     for (auto camera_id : cameras_json.getMemberNames()) {
+        validateCameraFields(address, camera_id);
         Camera cam;
         cam.time = Time::now();
         cam.id = camera_id;
@@ -379,6 +396,7 @@ vector<Camera> CommandAndStateMessageParser::getCameras(string address)
         cam.osd_enabled = cameras_json[camera_id]["osd"]["enabled"].asBool();
         auto streams = cameras_json[camera_id]["streams"];
         for (auto stream : streams.getMemberNames()) {
+            validateStreamFields(address, camera_id, stream);
             if (streams[stream]["active"].asBool()) {
                 cam.active_streams.push_back(stream);
             }

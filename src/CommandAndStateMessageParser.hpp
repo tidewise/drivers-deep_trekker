@@ -100,6 +100,10 @@ namespace deep_trekker {
         void validateDepthAttitude(std::string device_id);
         void validateCameraHeadStates(std::string device_id);
         void validateCameras(std::string device_id);
+        void validateCameraFields(std::string device_id, std::string camera_id);
+        void validateStreamFields(std::string device_id,
+            std::string camera_id,
+            std::string stream_id);
         void validateCPUTemperature(std::string device_id);
         void validateDriveStates(std::string device_id);
         void validateDriveModes(std::string device_id);
