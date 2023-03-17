@@ -14,10 +14,25 @@ namespace deep_trekker {
         acceleration
     };
 
-    struct DevicesMacAddress {
+    struct DevicesID {
         std::string revolution;
         std::string manual_reel;
         std::string powered_reel;
+        std::string camera;
+        std::vector<std::string> streams;
+    };
+
+    struct DevicesModel {
+        int revolution;
+        int manual_reel;
+        int powered_reel;
+        int camera;
+        int camera_head;
+    };
+
+    struct CameraHeadLimits {
+        double lower;
+        double upper;
     };
 
     /**
@@ -49,6 +64,15 @@ namespace deep_trekker {
         ZoomControl zoom;
     };
 
+    struct Camera {
+        base::Time time;
+        std::string id;
+        std::string ip;
+        bool osd_enabled;
+        std::vector<std::string> active_streams;
+        std::string type;
+    };
+
     /**
      *  light:
      *   - min: 0
@@ -62,10 +86,12 @@ namespace deep_trekker {
      *    - max: +1
      */
     struct TiltCameraHead {
+        base::Time time;
         double light;
         bool laser;
         bool motor_overcurrent;
-        TamronHarrierZoomCamera camera;
+        bool leak;
+        base::samples::Joints motor_states;
     };
 
     /**
@@ -83,10 +109,9 @@ namespace deep_trekker {
      *  tether_distance (payed out tether distance, given in cm)
      */
     struct ManualReel {
-        bool calibrated;
         bool leak;
         bool ready;
-        double tether_lenght;
+        double tether_length;
         double cpu_temperature;
     };
 
@@ -95,14 +120,13 @@ namespace deep_trekker {
      *  estop_enabled (physical button state)
      */
     struct PoweredReel {
-        bool calibrated;
+        base::Time time;
         bool leak;
-        bool ready;
         bool estop_enabled;
         bool ac_power_connected;
         bool motor_1_overcurrent;
         bool motor_2_overcurrent;
-        double tether_lenght;
+        double tether_length;
         double cpu_temperature;
         power_base::BatteryStatus battery_1;
         power_base::BatteryStatus battery_2;
@@ -121,6 +145,7 @@ namespace deep_trekker {
 
     struct Grabber {
         bool open_close_motor_overcurrent;
+        base::samples::Joints motor_states;
         bool rotate_overcurrent;
     };
 
@@ -143,6 +168,15 @@ namespace deep_trekker {
     /** Setpoint and state in local frame */
     typedef base::samples::RigidBodyState RevolutionBodyStates;
 
+    struct DriveMode {
+        base::Time time;
+        bool altitude_lock;
+        bool depth_lock;
+        bool auto_stabilization;
+        bool heading_lock;
+        bool motors_disabled;
+    };
+
     /**
      *  light:
      *   - min: 0
@@ -150,19 +184,20 @@ namespace deep_trekker {
      *  setpoint and state in local frame
      */
     struct Revolution {
-        double light;
+        base::Time time;
+        double aux_light;
         bool front_right_motor_overcurrent;
         bool front_left_motor_overcurrent;
         bool rear_right_motor_overcurrent;
         bool rear_left_motor_overcurrent;
         bool vertical_right_motor_overcurrent;
         bool vertical_left_motor_overcurrent;
-        Grabber grabber;
-        base::samples::RigidBodyState vehicle_control;
-        TiltCameraHead camera_head;
+        DriveMode drive_modes;
+        std::vector<Camera> cameras;
         base::Time usage_time;
         power_base::BatteryStatus left_battery;
         power_base::BatteryStatus right_battery;
+        float cpu_temperature;
     };
 
     /**
