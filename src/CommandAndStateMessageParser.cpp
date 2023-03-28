@@ -205,20 +205,13 @@ void CommandAndStateMessageParser::validateTimeUsage(string device_id)
         "usageTime");
 }
 
-void CommandAndStateMessageParser::validateRevolutionMotorStates(string device_id)
+void CommandAndStateMessageParser::validateRevolutionMotorStates(string device_id,
+    string motor)
 {
     auto device = m_json_data["payload"]["devices"][device_id];
-    vector<string> motors{"frontLeftMotorDignostics",
-        "frontRightMotorDiagnostics",
-        "rearLeftMotorDiagnostics",
-        "rearRightMotorDiagnostics",
-        "verticalLeftMotorDiagnostics",
-        "verticalRightMotorDiagnostics"};
-    for (auto motor : motors) {
-        validateFieldPresent(device[motor], "pwm", motor);
-        validateFieldPresent(device[motor], "current", motor);
-        validateFieldPresent(device[motor], "rpm", motor);
-    }
+    validateFieldPresent(device[motor], "pwm", motor);
+    validateFieldPresent(device[motor], "current", motor);
+    validateFieldPresent(device[motor], "rpm", motor);
 }
 
 Json::Value CommandAndStateMessageParser::payloadSetMessageTemplate(string api_version,
@@ -481,7 +474,6 @@ samples::Joints CommandAndStateMessageParser::getPoweredReelMotorState(string ad
 
 samples::Joints CommandAndStateMessageParser::getRevolutionMotorStates(string address)
 {
-    validateRevolutionMotorStates(address);
     auto root = m_json_data["payload"]["devices"][address];
     samples::Joints revolution;
     revolution.time = Time::now();
@@ -494,6 +486,7 @@ samples::Joints CommandAndStateMessageParser::getRevolutionMotorStates(string ad
         "verticalLeftMotorDiagnostics"};
 
     for (auto motor : motors) {
+        validateRevolutionMotorStates(address, motor);
         auto motor_json = root[motor];
         JointState state = motorDiagnosticsToJointState(motor_json);
         revolution.elements.push_back(state);

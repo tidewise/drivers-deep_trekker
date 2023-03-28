@@ -114,7 +114,8 @@ namespace deep_trekker {
         void validateTimeUsage(std::string device_id);
         void validateMotorStates(std::string device_id, std::string motor_field_name);
         void validateGrabberMotorsStates(std::string device_id);
-        void validateRevolutionMotorStates(std::string device_id);
+        void validateRevolutionMotorStates(std::string device_id,
+            std::string motor_field_name);
         void validatePoweredReelMotorState(std::string device_id);
 
     private:

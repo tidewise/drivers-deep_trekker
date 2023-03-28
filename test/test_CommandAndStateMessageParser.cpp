@@ -372,3 +372,89 @@ TEST_F(MessageParserTest, it_returns_the_powered_reel_motor_states)
     ASSERT_NEAR(motor2_expected.raw, actual.elements[1].raw, 0.01);
     ASSERT_NEAR(motor2_expected.effort, actual.elements[1].effort, 0.01);
 }
+
+TEST_F(MessageParserTest, it_returns_revolutions_motor_states)
+{
+    auto parser = getMessageParser();
+    Json::Value revolution;
+    revolution["payload"]["devices"]["rev"]["model"] = 108;
+    revolution["payload"]["devices"]["rev"]["frontLeftMotorDiagnostics"]["current"] = 40;
+    revolution["payload"]["devices"]["rev"]["frontLeftMotorDiagnostics"]["pwm"] = 40;
+    revolution["payload"]["devices"]["rev"]["frontLeftMotorDiagnostics"]["rpm"] = 42;
+    revolution["payload"]["devices"]["rev"]["rearLeftMotorDiagnostics"]["current"] = 40;
+    revolution["payload"]["devices"]["rev"]["rearLeftMotorDiagnostics"]["pwm"] = 40;
+    revolution["payload"]["devices"]["rev"]["rearLeftMotorDiagnostics"]["rpm"] = 42;
+    revolution["payload"]["devices"]["rev"]["frontRightMotorDiagnostics"]["current"] = 40;
+    revolution["payload"]["devices"]["rev"]["frontRightMotorDiagnostics"]["pwm"] = 40;
+    revolution["payload"]["devices"]["rev"]["frontRightMotorDiagnostics"]["rpm"] = 42;
+    revolution["payload"]["devices"]["rev"]["rearRightMotorDiagnostics"]["current"] = 40;
+    revolution["payload"]["devices"]["rev"]["rearRightMotorDiagnostics"]["pwm"] = 40;
+    revolution["payload"]["devices"]["rev"]["rearRightMotorDiagnostics"]["rpm"] = 42;
+    revolution["payload"]["devices"]["rev"]["verticalLeftMotorDiagnostics"]["current"] =
+        0;
+    revolution["payload"]["devices"]["rev"]["verticalLeftMotorDiagnostics"]["pwm"] = 0;
+    revolution["payload"]["devices"]["rev"]["verticalLeftMotorDiagnostics"]["rpm"] = 0;
+    revolution["payload"]["devices"]["rev"]["verticalRightMotorDiagnostics"]["current"] =
+        0;
+    revolution["payload"]["devices"]["rev"]["verticalRightMotorDiagnostics"]["pwm"] = 0;
+    revolution["payload"]["devices"]["rev"]["verticalRightMotorDiagnostics"]["rpm"] = 0;
+
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(revolution).c_str(), errors);
+    auto actual = parser.getRevolutionMotorStates("rev");
+
+    JointState front_left_expected;
+    front_left_expected.raw = 0.4;
+    front_left_expected.effort = 40;
+    front_left_expected.speed = 4.39;
+
+    ASSERT_NEAR(front_left_expected.raw, actual.elements[0].raw, 0.01);
+    ASSERT_NEAR(front_left_expected.effort, actual.elements[0].effort, 0.01);
+    ASSERT_NEAR(front_left_expected.speed, actual.elements[0].speed, 0.01);
+
+    JointState front_right_expected;
+    front_right_expected.raw = 0.4;
+    front_right_expected.effort = 40;
+    front_right_expected.speed = 4.39;
+
+    ASSERT_NEAR(front_right_expected.raw, actual.elements[1].raw, 0.01);
+    ASSERT_NEAR(front_right_expected.effort, actual.elements[1].effort, 0.01);
+    ASSERT_NEAR(front_right_expected.speed, actual.elements[1].speed, 0.01);
+
+    JointState rear_left_expected;
+    rear_left_expected.raw = 0.4;
+    rear_left_expected.effort = 40;
+    rear_left_expected.speed = 4.39;
+
+    ASSERT_NEAR(rear_left_expected.raw, actual.elements[2].raw, 0.01);
+    ASSERT_NEAR(rear_left_expected.effort, actual.elements[2].effort, 0.01);
+    ASSERT_NEAR(rear_left_expected.speed, actual.elements[2].speed, 0.01);
+
+    JointState rear_right_expected;
+    rear_right_expected.raw = 0.4;
+    rear_right_expected.effort = 40;
+    rear_right_expected.speed = 4.39;
+
+    ASSERT_NEAR(rear_right_expected.raw, actual.elements[3].raw, 0.01);
+    ASSERT_NEAR(rear_right_expected.effort, actual.elements[3].effort, 0.01);
+    ASSERT_NEAR(rear_right_expected.speed, actual.elements[3].speed, 0.01);
+
+    JointState vertical_left_expected;
+    vertical_left_expected.raw = 0;
+    vertical_left_expected.effort = 0;
+    vertical_left_expected.speed = 0;
+
+    ASSERT_NEAR(vertical_left_expected.raw, actual.elements[4].raw, 0.01);
+    ASSERT_NEAR(vertical_left_expected.effort, actual.elements[4].effort, 0.01);
+    ASSERT_NEAR(vertical_left_expected.speed, actual.elements[4].speed, 0.01);
+
+    JointState vertical_right_expected;
+    vertical_right_expected.raw = 0;
+    vertical_right_expected.effort = 0;
+    vertical_right_expected.speed = 0;
+
+    ASSERT_NEAR(vertical_right_expected.raw, actual.elements[5].raw, 0.01);
+    ASSERT_NEAR(vertical_right_expected.effort, actual.elements[5].effort, 0.01);
+    ASSERT_NEAR(vertical_right_expected.speed, actual.elements[5].speed, 0.01);
+}
