@@ -42,7 +42,9 @@ int main(int argc, char** argv)
         std::shared_ptr<Rusty> rusty = make_shared<Rusty>(rusty_config,
             rusty_host,
             rock_peer_id,
-            deep_trekker_peer_id);
+            deep_trekker_peer_id,
+            base::Time::fromSeconds(2),
+            base::Time());
 
         rusty->waitClientNew();
 

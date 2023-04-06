@@ -18,6 +18,7 @@ namespace deep_trekker {
         std::string m_rock_peer_id;
         std::string m_deep_trekker_peer_id;
         base::Time m_timeout;
+        base::Time m_client_ping_timeout;
         base::Time m_client_ping_deadline;
 
         std::shared_ptr<WebRTCNegotiationInterface> m_client_main;
@@ -36,7 +37,8 @@ namespace deep_trekker {
             std::string const& host,
             std::string const& rusty_peer_id,
             std::string const& deep_trekker_peer_id,
-            base::Time const& timeout = base::Time::fromSeconds(2));
+            base::Time const& timeout = base::Time::fromSeconds(2),
+            base::Time const& client_ping_timeout = base::Time::fromSeconds(2));
         ~Rusty();
 
         enum PollStatus {

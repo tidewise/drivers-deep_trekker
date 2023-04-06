@@ -10,12 +10,14 @@ Rusty::Rusty(WebSocket::Configuration const& config,
     string const& host,
     string const& rock_peer_id,
     string const& deep_trekker_peer_id,
-    base::Time const& timeout)
+    base::Time const& timeout,
+    base::Time const& client_ping_timeout)
     : m_ws(config, "rock")
     , m_host(host)
     , m_rock_peer_id(rock_peer_id)
     , m_deep_trekker_peer_id(deep_trekker_peer_id)
     , m_timeout(timeout)
+    , m_client_ping_timeout(client_ping_timeout)
 {
     open();
 }
@@ -57,9 +59,10 @@ void Rusty::open()
             return;
         }
 
+        if (!m_client_ping_timeout.isNull())
         {
             unique_lock lock(m_poll_lock);
-            m_client_ping_deadline = Time::now() + m_timeout;
+            m_client_ping_deadline = Time::now() + m_client_ping_timeout;
         }
 
         if (action == "ping") {
