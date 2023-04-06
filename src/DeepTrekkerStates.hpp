@@ -116,7 +116,7 @@ namespace deep_trekker {
     };
 
     /**
-     *  tether_distance (payed out tether distance, given in cm)
+     *  tether_distance (payed out tether distance)
      *  estop_enabled (physical button state)
      */
     struct PoweredReel {
