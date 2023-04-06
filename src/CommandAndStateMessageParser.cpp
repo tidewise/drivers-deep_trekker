@@ -605,7 +605,8 @@ double CommandAndStateMessageParser::getAuxLightIntensity(string address)
 double CommandAndStateMessageParser::getTetherLength(string address)
 {
     validateDistance(address);
-    return m_json_data["payload"]["devices"][address]["distance"].asDouble();
+    // Convert the distance to meters
+    return m_json_data["payload"]["devices"][address]["distance"].asDouble() / 100;
 }
 
 double CommandAndStateMessageParser::getCpuTemperature(string address)
