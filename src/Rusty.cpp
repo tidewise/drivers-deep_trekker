@@ -36,7 +36,15 @@ void Rusty::open()
     m_ws.open("ws://" + m_host + "?user=" + m_deep_trekker_peer_id, m_timeout);
     m_ws.onJSONMessage([&](Json::Value const& msg) {
         auto action = msg["action"].asString();
-        if (action == "open") {
+        if (action == "request-offer") {
+            {
+                unique_lock lock(m_poll_lock);
+                if (!m_client.lock()) {
+                    m_has_new_client = true;
+                }
+            }
+        }
+        else if (action == "open") {
             {
                 unique_lock lock(m_poll_lock);
                 m_client.reset();
