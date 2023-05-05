@@ -356,7 +356,7 @@ void SignalR::publishICECandidate(std::string const& candidate, std::string cons
     Json::Value data;
     data["sdpMid"] = mid;
     data["sdpMLineIndex"] = 0;
-    data["content"] = candidate.substr(2);
+    data["content"] = candidate;
     msg["candidate"] = data;
     call("ice_candidate", msg);
 }
