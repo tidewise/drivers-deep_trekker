@@ -174,6 +174,38 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
     ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), -1);
 }
 
+TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offset)
+{
+    auto parser = getMessageParser();
+    base::commands::LinearAngular6DCommand command;
+    double vertical_command_offset = 0.2;
+    command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
+    command.angular = Eigen::Vector3d(0, 0, 0.012);
+    string message = parser.parseDriveRevolutionCommandMessage(api_version,
+        address,
+        13,
+        command,
+        vertical_command_offset);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
+
+    auto drive = json_value["payload"]["devices"][address]["drive"];
+    ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
+    ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), 42);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 6 + vertical_command_offset*100);
+    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), 1);
+}
+
 TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)
 {
     auto parser = getMessageParser();

@@ -24,7 +24,7 @@ namespace deep_trekker {
             std::string address,
             int model,
             base::commands::LinearAngular6DCommand command,
-            double minimum_vertical_command);
+            double vertical_command_offset);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
             int model,
