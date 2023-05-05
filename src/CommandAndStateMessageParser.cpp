@@ -252,13 +252,13 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     string address,
     int model,
     commands::LinearAngular6DCommand command,
-    double vertical_command_offset)
+    double buoyancy_compensation_offset)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto root = message["payload"]["devices"][address];
 
     auto vertical_cmd_sign = command.z() / abs(command.z());
-    auto vertical_cmd = abs(command.z()) * vertical_cmd_sign + vertical_command_offset;
+    auto vertical_cmd = abs(command.z()) * vertical_cmd_sign + buoyancy_compensation_offset;
     auto thrust = root["drive"]["thrust"];
     thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
     thrust["lateral"] = -round(min(max(command.linear.y(), -1.0), 1.0) * 100);
