@@ -169,9 +169,9 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
 
     auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
-    ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), 42);
-    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 6);
-    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), 1);
+    ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), -42);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), -6);
+    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), -1);
 }
 
 TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)
@@ -272,7 +272,7 @@ TEST_F(MessageParserTest, it_returns_the_rov_pose_with_z_and_attitude)
 
     ASSERT_NEAR(-20, actual.position.z(), 0.01);
     ASSERT_NEAR(0.349, getRoll(actual.orientation), 0.01);
-    ASSERT_NEAR(1.5708, getYaw(actual.orientation), 0.01);
+    ASSERT_NEAR(-1.5708, getYaw(actual.orientation), 0.01);
     ASSERT_NEAR(0.1745, getPitch(actual.orientation), 0.01);
 }
 
