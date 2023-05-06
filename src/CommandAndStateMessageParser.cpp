@@ -262,9 +262,9 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
         max(abs(command.z()), minimum_vertical_command) * vertical_cmd_sign;
     auto thrust = root["drive"]["thrust"];
     thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
-    thrust["lateral"] = round(min(max(command.linear.y(), -1.0), 1.0) * 100);
-    thrust["vertical"] = round(min(max(vertical_cmd, -1.0), 1.0) * 100);
-    thrust["yaw"] = round(min(max(command.angular.z(), -1.0), 1.0) * 100);
+    thrust["lateral"] = -round(min(max(command.linear.y(), -1.0), 1.0) * 100);
+    thrust["vertical"] = -round(min(max(vertical_cmd, -1.0), 1.0) * 100);
+    thrust["yaw"] = -round(min(max(command.angular.z(), -1.0), 1.0) * 100);
     root["drive"]["thrust"] = thrust;
 
     message["payload"]["devices"][address] = root;
@@ -405,9 +405,9 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionDriveStates(
     validateDriveStates(address);
     auto msg_setpoint = m_json_data["payload"]["devices"][address]["drive"]["thrust"];
     double setpoint_x = msg_setpoint["forward"].asDouble();
-    double setpoint_y = msg_setpoint["lateral"].asDouble();
-    double setpoint_z = msg_setpoint["vertical"].asDouble();
-    double setpoint_yaw = msg_setpoint["yaw"].asDouble();
+    double setpoint_y = -msg_setpoint["lateral"].asDouble();
+    double setpoint_z = -msg_setpoint["vertical"].asDouble();
+    double setpoint_yaw = -msg_setpoint["yaw"].asDouble();
 
     samples::RigidBodyState control;
     control.position.x() = setpoint_x;
@@ -440,7 +440,7 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude
     double state_z = local_frame["depth"].asDouble();
     double roll = local_frame["roll"].asDouble() * M_PI / 180;
     double pitch = local_frame["pitch"].asDouble() * M_PI / 180;
-    double yaw = local_frame["heading"].asDouble() * M_PI / 180;
+    double yaw = -local_frame["heading"].asDouble() * M_PI / 180;
 
     samples::RigidBodyState pose;
     pose.time = Time::now();
