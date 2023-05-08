@@ -178,7 +178,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
 {
     auto parser = getMessageParser();
     base::commands::LinearAngular6DCommand command;
-    double vertical_command_offset = 0.2;
+    double vertical_command_offset = -0.2;
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message = parser.parseDriveRevolutionCommandMessage(api_version,
@@ -201,9 +201,9 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
 
     auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
-    ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), 42);
-    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 6 + vertical_command_offset*100);
-    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), 1);
+    ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), -42);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), -6 - vertical_command_offset*100);
+    ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), -1);
 }
 
 TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)

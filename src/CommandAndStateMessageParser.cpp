@@ -258,7 +258,7 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     auto root = message["payload"]["devices"][address];
 
     auto vertical_cmd_sign = command.z() / abs(command.z());
-    auto vertical_cmd = abs(command.z()) * vertical_cmd_sign + buoyancy_compensation_offset;
+    auto vertical_cmd = command.z() + buoyancy_compensation_offset;
     auto thrust = root["drive"]["thrust"];
     thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
     thrust["lateral"] = -round(min(max(command.linear.y(), -1.0), 1.0) * 100);
