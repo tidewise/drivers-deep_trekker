@@ -202,7 +202,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
     auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
     ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), -42);
-    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), -6 - vertical_command_offset*100);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 14);
     ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), -1);
 }
 
