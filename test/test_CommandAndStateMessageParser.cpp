@@ -300,7 +300,6 @@ TEST_F(MessageParserTest, it_returns_the_rov_pose_with_z_and_attitude)
     string errors;
     parser.parseJSONMessage(writer.write(pose_info).c_str(), errors);
     auto actual = parser.getRevolutionPoseZAttitude("revolution_id123");
-    auto euler = actual.orientation.toRotationMatrix().eulerAngles(0, 1, 2);
 
     ASSERT_NEAR(-20, actual.position.z(), 0.01);
     ASSERT_NEAR(0.349, getRoll(actual.orientation), 0.01);
@@ -374,6 +373,36 @@ TEST_F(MessageParserTest, it_returns_the_camera_head_state)
     ASSERT_EQ(expected.laser, actual.laser);
     ASSERT_EQ(expected.motor_overcurrent, actual.motor_overcurrent);
     ASSERT_EQ(expected.leak, actual.leak);
+}
+
+TEST_F(MessageParserTest, it_returns_the_camera_head_tilt_state_in_rbs_form)
+{
+    auto parser = getMessageParser();
+    Json::Value camera_head;
+    camera_head["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["light"]
+               ["intensity"] = 40;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["lasers"]
+               ["enabled"] = true;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["leak"] = false;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["tilt"]
+               ["position"] = 90;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
+               ["tiltMotorDiagnostics"]["overcurrent"] = true;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
+               ["tiltMotorDiagnostics"]["rpm"] = 20;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
+               ["tiltMotorDiagnostics"]["pwm"] = 80;
+    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
+               ["tiltMotorDiagnostics"]["current"] = 60;
+
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(camera_head).c_str(), errors);
+    auto actual = parser.getCameraHeadTiltMotorStateRBS("revolution_id123");
+    ASSERT_EQ(0.0, getRoll(actual.orientation));
+    ASSERT_EQ(0.0, getPitch(actual.orientation));
+    ASSERT_NEAR(1.570, getYaw(actual.orientation), 1e-3);
 }
 
 TEST_F(MessageParserTest, it_returns_the_powered_reel_motor_states)
