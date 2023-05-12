@@ -570,8 +570,8 @@ RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
 
     RigidBodyState rbs;
     rbs.time = Time::now();
-    auto pitch = root["tilt"]["position"].asDouble() * M_PI / 180;
-    rbs.orientation = AngleAxisd(pitch, Vector3d::UnitY());
+    auto yaw = root["tilt"]["position"].asDouble() * M_PI / 180;
+    rbs.orientation = AngleAxisd(yaw, Vector3d::UnitZ());
     return rbs;
 }
 
