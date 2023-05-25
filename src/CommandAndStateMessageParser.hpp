@@ -11,7 +11,6 @@
 #include "json/json.h"
 
 namespace deep_trekker {
-
     class CommandAndStateMessageParser {
     public:
         CommandAndStateMessageParser();
@@ -117,6 +116,12 @@ namespace deep_trekker {
         void validateRevolutionMotorStates(std::string device_id,
             std::string motor_field_name);
         void validatePoweredReelMotorState(std::string device_id);
+
+        Json::Value createGetRequest(std::string api_version);
+        std::string getRequestForPoweredReelStates(std::string api_version,
+            std::string device_id);
+        std::string getRequestForRevolutionPoseZAttitude(std::string api_version,
+            std::string device_id);
 
     private:
         Json::Value m_json_data;
