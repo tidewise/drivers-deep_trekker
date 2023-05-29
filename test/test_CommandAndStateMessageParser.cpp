@@ -520,6 +520,24 @@ TEST_F(MessageParserTest, it_returns_revolutions_motor_states)
     ASSERT_NEAR(vertical_right_expected.speed, actual.elements[5].speed, 0.01);
 }
 
+TEST_F(MessageParserTest, it_creates_a_get_request_for_the_revolution_pose)
+{
+    auto parser = getMessageParser();
+
+    Json::Value expected_json;
+    expected_json["apiVersion"] = "0.20.0";
+    expected_json["method"] = "GET";
+    expected_json["payload"]["devices"]["abcd"]["depth"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["roll"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["pitch"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["heading"] = 0;
+
+    auto message = parser.getRequestForRevolutionPoseZAttitude("0.20.0", "abcd");
+
+    Json::FastWriter writer;
+    ASSERT_EQ(writer.write(expected_json), message);
+}
+
 TEST_F(MessageParserTest, it_creates_a_get_request_for_the_powered_reel_states)
 {
     auto parser = getMessageParser();
