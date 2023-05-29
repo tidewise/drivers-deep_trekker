@@ -519,3 +519,48 @@ TEST_F(MessageParserTest, it_returns_revolutions_motor_states)
     ASSERT_NEAR(vertical_right_expected.effort, actual.elements[5].effort, 0.01);
     ASSERT_NEAR(vertical_right_expected.speed, actual.elements[5].speed, 0.01);
 }
+
+TEST_F(MessageParserTest, it_creates_a_get_request_for_the_revolution_pose)
+{
+    auto parser = getMessageParser();
+
+    Json::Value expected_json;
+    expected_json["apiVersion"] = "0.20.0";
+    expected_json["method"] = "GET";
+    expected_json["payload"]["devices"]["abcd"]["depth"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["roll"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["pitch"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["heading"] = 0;
+
+    auto message = parser.getRequestForRevolutionPoseZAttitude("0.20.0", "abcd");
+
+    Json::FastWriter writer;
+    ASSERT_EQ(writer.write(expected_json), message);
+}
+
+TEST_F(MessageParserTest, it_creates_a_get_request_for_the_powered_reel_states)
+{
+    auto parser = getMessageParser();
+
+    Json::Value expected_json;
+    expected_json["apiVersion"] = "0.20.0";
+    expected_json["method"] = "GET";
+    expected_json["payload"]["devices"]["abcd"]["distance"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["leak"] = false;
+    expected_json["payload"]["devices"]["abcd"]["cpuTemp"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["battery1"]["percent"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["battery1"]["voltage"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["battery2"]["percent"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["battery2"]["voltage"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["acConnected"] = false;
+    expected_json["payload"]["devices"]["abcd"]["eStop"] = false;
+    expected_json["payload"]["devices"]["abcd"]["motor1Diagnostics"]["overcurrent"] =
+        false;
+    expected_json["payload"]["devices"]["abcd"]["motor2Diagnostics"]["overcurrent"] =
+        false;
+
+    auto message = parser.getRequestForPoweredReelStates("0.20.0", "abcd");
+
+    Json::FastWriter writer;
+    ASSERT_EQ(writer.write(expected_json), message);
+}

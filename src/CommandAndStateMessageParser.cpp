@@ -630,3 +630,50 @@ bool CommandAndStateMessageParser::isEStopEnabled(string address)
     validateEStop(address);
     return m_json_data["payload"]["devices"][address]["eStop"].asBool();
 }
+
+Json::Value CommandAndStateMessageParser::createGetRequest(string api_version)
+{
+    Json::Value message;
+    message["method"] = "GET";
+    message["apiVersion"] = api_version;
+    return message;
+}
+
+string CommandAndStateMessageParser::getRequestForPoweredReelStates(
+    string api_version,
+    string device_id)
+{
+    auto request = createGetRequest(api_version);
+    auto device = request["payload"]["devices"][device_id];
+    device["distance"] = 0;
+    device["leak"] = false;
+    device["cpuTemp"] = 0;
+    device["battery1"]["percent"] = 0;
+    device["battery1"]["voltage"] = 0;
+    device["battery2"]["percent"] = 0;
+    device["battery2"]["voltage"] = 0;
+    device["acConnected"] = false;
+    device["eStop"] = false;
+    device["motor1Diagnostics"]["overcurrent"] = false;
+    device["motor2Diagnostics"]["overcurrent"] = false;
+    request["payload"]["devices"][device_id] = device;
+
+    Json::FastWriter writer;
+    return writer.write(request);
+}
+
+string CommandAndStateMessageParser::getRequestForRevolutionPoseZAttitude(
+    string api_version,
+    string device_id)
+{
+    auto request = createGetRequest(api_version);
+    auto device = request["payload"]["devices"][device_id];
+    device["depth"] = 0;
+    device["roll"] = 0;
+    device["pitch"] = 0;
+    device["heading"] = 0;
+    request["payload"]["devices"][device_id] = device;
+
+    Json::FastWriter writer;
+    return writer.write(request);
+}
