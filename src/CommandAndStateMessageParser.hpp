@@ -22,8 +22,7 @@ namespace deep_trekker {
         std::string parseDriveRevolutionCommandMessage(std::string api_version,
             std::string address,
             int model,
-            base::commands::LinearAngular6DCommand command,
-            double buoyancy_compensation_offset);
+            base::commands::LinearAngular6DCommand const& command);
         std::string parsePoweredReelCommandMessage(std::string api_version,
             std::string address,
             int model,
