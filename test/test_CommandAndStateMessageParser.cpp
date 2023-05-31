@@ -153,7 +153,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command)
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message =
-        parser.parseDriveRevolutionCommandMessage(api_version, address, 13, command, 0);
+        parser.parseDriveRevolutionCommandMessage(api_version, address, 13, command);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -184,8 +184,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
     string message = parser.parseDriveRevolutionCommandMessage(api_version,
         address,
         13,
-        command,
-        vertical_command_offset);
+        command);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -202,7 +201,7 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
     auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["thrust"]["forward"].asDouble(), 4);
     ASSERT_EQ(drive["thrust"]["lateral"].asDouble(), -42);
-    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), 14);
+    ASSERT_EQ(drive["thrust"]["vertical"].asDouble(), -6);
     ASSERT_EQ(drive["thrust"]["yaw"].asDouble(), -1);
 }
 

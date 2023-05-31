@@ -251,13 +251,12 @@ string CommandAndStateMessageParser::parseDriveRevolutionCommandMessage(
     string api_version,
     string address,
     int model,
-    commands::LinearAngular6DCommand command,
-    double buoyancy_compensation_offset)
+    commands::LinearAngular6DCommand const& command)
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto root = message["payload"]["devices"][address];
 
-    auto vertical_cmd = command.z() + buoyancy_compensation_offset;
+    auto vertical_cmd = command.z();
     auto thrust = root["drive"]["thrust"];
     thrust["forward"] = round(min(max(command.linear.x(), -1.0), 1.0) * 100);
     thrust["lateral"] = -round(min(max(command.linear.y(), -1.0), 1.0) * 100);
@@ -639,8 +638,7 @@ Json::Value CommandAndStateMessageParser::createGetRequest(string api_version)
     return message;
 }
 
-string CommandAndStateMessageParser::getRequestForPoweredReelStates(
-    string api_version,
+string CommandAndStateMessageParser::getRequestForPoweredReelStates(string api_version,
     string device_id)
 {
     auto request = createGetRequest(api_version);
