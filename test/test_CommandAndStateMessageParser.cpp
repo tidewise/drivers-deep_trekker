@@ -181,10 +181,8 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
     double vertical_command_offset = -0.2;
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
-    string message = parser.parseDriveRevolutionCommandMessage(api_version,
-        address,
-        13,
-        command);
+    string message =
+        parser.parseDriveRevolutionCommandMessage(api_version, address, 13, command);
 
     Json::Value json_value;
     Json::CharReaderBuilder builder;
@@ -212,8 +210,6 @@ TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)
     command.altitude_lock = true;
     command.heading_lock = false;
     command.depth_lock = false;
-    command.motors_disabled = true;
-    command.auto_stabilization = true;
     string message =
         parser.parseDriveModeRevolutionCommandMessage(api_version, address, 102, command);
 
@@ -233,8 +229,31 @@ TEST_F(MessageParserTest, it_parses_drive_mode_revolution_command)
     ASSERT_EQ(drive["modes"]["altitudeLock"].asBool(), true);
     ASSERT_EQ(drive["modes"]["headingLock"].asBool(), false);
     ASSERT_EQ(drive["modes"]["depthLock"].asBool(), false);
+}
+
+TEST_F(MessageParserTest, it_parses_a_motors_disabled_command)
+{
+    auto parser = getMessageParser();
+    bool motors_disabled = true;
+    string message = parser.parseMotorsDisabledRevolutionCommandMessage(api_version,
+        address,
+        102,
+        motors_disabled);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 102);
+
+    auto drive = json_value["payload"]["devices"][address]["drive"];
     ASSERT_EQ(drive["modes"]["motorsDisabled"].asBool(), true);
-    ASSERT_EQ(drive["modes"]["autoStabilization"].asBool(), true);
 }
 
 TEST_F(MessageParserTest, it_discovers_a_camera_and_active_streams)
@@ -326,16 +345,56 @@ TEST_F(MessageParserTest, it_returns_the_drive_mode)
     parser.parseJSONMessage(writer.write(drive_modes).c_str(), errors);
     auto actual = parser.getRevolutionDriveModes("revolution_id123");
     DriveMode expected;
-    expected.auto_stabilization = false;
     expected.altitude_lock = true;
     expected.heading_lock = true;
     expected.depth_lock = true;
-    expected.motors_disabled = false;
-    ASSERT_EQ(expected.auto_stabilization, actual.auto_stabilization);
     ASSERT_EQ(expected.altitude_lock, actual.altitude_lock);
     ASSERT_EQ(expected.heading_lock, actual.heading_lock);
     ASSERT_EQ(expected.depth_lock, actual.depth_lock);
-    ASSERT_EQ(expected.motors_disabled, actual.motors_disabled);
+}
+
+TEST_F(MessageParserTest, it_returns_the_motors_disabled_state)
+{
+    auto parser = getMessageParser();
+    Json::Value drive_modes;
+    drive_modes["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["headingLock"] = true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]["depthLock"] =
+        true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["motorsDisabled"] = true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["autoStabilization"] = false;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["altitudeLock"] = true;
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(drive_modes).c_str(), errors);
+    auto actual = parser.getRevolutionMotorsDisabled("revolution_id123");
+    ASSERT_EQ(true, actual);
+}
+
+TEST_F(MessageParserTest, it_returns_the_auto_stabilization_state)
+{
+    auto parser = getMessageParser();
+    Json::Value drive_modes;
+    drive_modes["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["headingLock"] = true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]["depthLock"] =
+        true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["motorsDisabled"] = true;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["autoStabilization"] = false;
+    drive_modes["payload"]["devices"]["revolution_id123"]["drive"]["modes"]
+               ["altitudeLock"] = true;
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(drive_modes).c_str(), errors);
+    auto actual = parser.getRevolutionAutoStabilization("revolution_id123");
+    ASSERT_EQ(false, actual);
 }
 
 TEST_F(MessageParserTest, it_returns_the_camera_head_state)

@@ -168,13 +168,16 @@ namespace deep_trekker {
     /** Setpoint and state in local frame */
     typedef base::samples::RigidBodyState RevolutionBodyStates;
 
+    /**
+     * Available drive modes of the Deep Trekker API, except auto stabilization and motors
+     * disabled. Those were separated because they have a different behavior from the
+     * others.
+     */
     struct DriveMode {
         base::Time time;
         bool altitude_lock;
         bool depth_lock;
-        bool auto_stabilization;
         bool heading_lock;
-        bool motors_disabled;
     };
 
     /**
