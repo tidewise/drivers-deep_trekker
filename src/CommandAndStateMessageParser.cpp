@@ -572,6 +572,8 @@ RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
     auto yaw = root["tilt"]["position"].asDouble() * M_PI / 180;
     rbs.position = Vector3d::Zero();
     rbs.orientation = AngleAxisd(yaw, Vector3d::UnitZ());
+    rbs.sourceFrame = "deep_trekker::body2front_camera_post";
+    rbs.targetFrame = "deep_trekker::body2front_camera_pre";
     return rbs;
 }
 
