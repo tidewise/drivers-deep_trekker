@@ -5,6 +5,7 @@
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <power_base/BatteryStatus.hpp>
+#include "base/commands/LinearAngular6DCommand.hpp"
 
 namespace deep_trekker {
 
@@ -198,6 +199,7 @@ namespace deep_trekker {
         power_base::BatteryStatus left_battery;
         power_base::BatteryStatus right_battery;
         float cpu_temperature;
+        base::commands::LinearAngular6DCommand compensated_command;
     };
 
     /**
