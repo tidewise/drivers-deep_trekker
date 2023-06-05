@@ -402,6 +402,8 @@ TEST_F(MessageParserTest, it_returns_the_camera_head_tilt_state_in_rbs_form)
     ASSERT_EQ(0.0, getRoll(actual.orientation));
     ASSERT_EQ(0.0, getPitch(actual.orientation));
     ASSERT_NEAR(1.570, getYaw(actual.orientation), 1e-3);
+    ASSERT_EQ("deep_trekker::body2front_camera_post", actual.sourceFrame);
+    ASSERT_EQ("deep_trekker::body2front_camera_pre", actual.targetFrame);
 }
 
 TEST_F(MessageParserTest, it_returns_the_powered_reel_motor_states)
