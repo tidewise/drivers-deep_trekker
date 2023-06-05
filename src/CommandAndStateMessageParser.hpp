@@ -19,6 +19,16 @@ namespace deep_trekker {
             std::string address,
             int model,
             DriveMode command);
+        std::string parseAutoStabilizationRevolutionCommandMessage(
+            std::string api_version,
+            std::string address,
+            int model,
+            bool auto_stabilization);
+        std::string parseMotorsDisabledRevolutionCommandMessage(
+            std::string api_version,
+            std::string address,
+            int model,
+            bool motors_disabled);
         std::string parseDriveRevolutionCommandMessage(std::string api_version,
             std::string address,
             int model,
@@ -62,6 +72,8 @@ namespace deep_trekker {
 
         base::samples::RigidBodyState getRevolutionDriveStates(std::string address);
         DriveMode getRevolutionDriveModes(std::string address);
+        bool getRevolutionMotorsDisabled(std::string address);
+        bool getRevolutionAutoStabilization(std::string address);
         /**
          * @see RevolutionBodyStates
          */

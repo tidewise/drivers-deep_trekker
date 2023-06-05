@@ -236,11 +236,40 @@ string CommandAndStateMessageParser::parseDriveModeRevolutionCommandMessage(
 
     auto modes = root["drive"]["modes"];
     modes["altitudeLock"] = command.altitude_lock;
-    modes["autoStabilization"] = command.auto_stabilization;
     modes["depthLock"] = command.depth_lock;
     modes["headingLock"] = command.heading_lock;
-    modes["motorsDisabled"] = command.motors_disabled;
     root["drive"]["modes"] = modes;
+
+    message["payload"]["devices"][address] = root;
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseMotorsDisabledRevolutionCommandMessage(
+    string api_version,
+    string address,
+    int model,
+    bool motors_disabled)
+{
+    auto message = payloadSetMessageTemplate(api_version, address, model);
+    auto root = message["payload"]["devices"][address];
+    root["drive"]["modes"]["motorsDisabled"] = motors_disabled;
+
+    message["payload"]["devices"][address] = root;
+    Json::FastWriter fast;
+    return fast.write(message);
+}
+
+string CommandAndStateMessageParser::parseAutoStabilizationRevolutionCommandMessage(
+    string api_version,
+    string address,
+    int model,
+    bool auto_stabilization)
+{
+    auto message = payloadSetMessageTemplate(api_version, address, model);
+    auto root = message["payload"]["devices"][address];
+
+    root["drive"]["modes"]["autoStabilization"] = auto_stabilization;
 
     message["payload"]["devices"][address] = root;
     Json::FastWriter fast;
@@ -421,12 +450,25 @@ DriveMode CommandAndStateMessageParser::getRevolutionDriveModes(string address)
     DriveMode drive_mode;
     auto root = m_json_data["payload"]["devices"][address]["drive"]["modes"];
     drive_mode.time = Time::now();
-    drive_mode.auto_stabilization = root["autoStabilization"].asBool();
     drive_mode.heading_lock = root["headingLock"].asBool();
     drive_mode.depth_lock = root["depthLock"].asBool();
     drive_mode.altitude_lock = root["altitudeLock"].asBool();
-    drive_mode.motors_disabled = root["motorsDisabled"].asBool();
     return drive_mode;
+}
+
+bool CommandAndStateMessageParser::getRevolutionMotorsDisabled(string address)
+{
+    validateDriveModes(address);
+    return m_json_data["payload"]["devices"][address]["drive"]["modes"]["motorsDisabled"]
+        .asBool();
+}
+
+bool CommandAndStateMessageParser::getRevolutionAutoStabilization(string address)
+{
+    validateDriveModes(address);
+    return m_json_data["payload"]["devices"][address]["drive"]["modes"]
+                      ["autoStabilization"]
+                          .asBool();
 }
 
 samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude(
