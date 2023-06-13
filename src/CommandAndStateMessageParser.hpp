@@ -67,6 +67,7 @@ namespace deep_trekker {
             std::string battery_side);
         base::samples::Joints getCameraHeadTiltMotorState(std::string address);
         base::samples::RigidBodyState getCameraHeadTiltMotorStateRBS(std::string address);
+        double computeCameraHead2BodyTilt(std::string address, double world2camera_tilt);
         TiltCameraHead getCameraHeadStates(std::string address);
         std::vector<Camera> getCameras(std::string address);
 

@@ -597,8 +597,11 @@ samples::Joints CommandAndStateMessageParser::getCameraHeadTiltMotorState(string
 
     samples::Joints motor_states;
     motor_states.time = Time::now();
+    auto tilt = root["tilt"]["position"].asDouble() * M_PI / 180;
+    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address, tilt);
+
     JointState joint_state = motorDiagnosticsToJointState(root["tiltMotorDiagnostics"]);
-    joint_state.position = root["tilt"]["position"].asDouble() * M_PI / 180;
+    joint_state.position = camera_head2body_tilt;
     motor_states.elements.push_back(joint_state);
     return motor_states;
 }
@@ -611,12 +614,23 @@ RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
 
     RigidBodyState rbs;
     rbs.time = Time::now();
-    auto yaw = root["tilt"]["position"].asDouble() * M_PI / 180;
+    auto tilt = root["tilt"]["position"].asDouble() * M_PI / 180;
+    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address, tilt);
     rbs.position = Vector3d::Zero();
-    rbs.orientation = AngleAxisd(yaw, Vector3d::UnitZ());
+    rbs.orientation = AngleAxisd(camera_head2body_tilt, Vector3d::UnitZ());
     rbs.sourceFrame = "deep_trekker::body2front_camera_post";
     rbs.targetFrame = "deep_trekker::body2front_camera_pre";
     return rbs;
+}
+
+double CommandAndStateMessageParser::computeCameraHead2BodyTilt(string address,
+    double camera_head2world_tilt)
+{
+    validateDepthAttitude(address);
+
+    auto body2world_pitch =
+        m_json_data["payload"]["devices"][address]["pitch"].asDouble() * M_PI / 180.0;
+    return camera_head2world_tilt - body2world_pitch;
 }
 
 JointState CommandAndStateMessageParser::motorDiagnosticsToJointState(Json::Value value)
