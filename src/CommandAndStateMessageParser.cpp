@@ -338,7 +338,7 @@ string CommandAndStateMessageParser::parseCameraHeadLightMessage(string api_vers
     auto message = payloadSetMessageTemplate(api_version, address, model);
     auto camera_head = message["payload"]["devices"][address]["cameraHead"];
     camera_head["model"] = camera_head_model;
-    camera_head["light"]["intensity"] = min(max(light_intensity, 0.0), 1.0) * 100;
+    camera_head["light"]["intensity"] = round(min(max(light_intensity, 0.0), 1.0) * 100);
     message["payload"]["devices"][address]["cameraHead"] = camera_head;
 
     Json::FastWriter fast;
@@ -368,7 +368,7 @@ string CommandAndStateMessageParser::parseAuxLightCommandMessage(string api_vers
 {
     auto message = payloadSetMessageTemplate(api_version, address, model);
     message["payload"]["devices"][address]["auxLight"]["intensity"] =
-        min(max(intensity, 0.0), 1.0) * 100;
+        round(min(max(intensity, 0.0), 1.0) * 100);
 
     Json::FastWriter fast;
     return fast.write(message);

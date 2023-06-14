@@ -96,6 +96,29 @@ TEST_F(MessageParserTest, it_parses_camera_head_light_command_message)
     ASSERT_EQ(camera_head["light"]["intensity"].asDouble(), light * 100);
 }
 
+TEST_F(MessageParserTest, it_parses_camera_head_light_command_message_rounding_to_int)
+{
+    auto parser = getMessageParser();
+    auto light = 0.9555;
+    string message =
+        parser.parseCameraHeadLightMessage(api_version, address, 13, 102, light);
+
+    Json::Value json_value;
+    Json::CharReaderBuilder builder;
+    Json::CharReader* reader = builder.newCharReader();
+    string error;
+    reader->parse(message.c_str(),
+        message.c_str() + strlen(message.c_str()),
+        &json_value,
+        &error);
+    ASSERT_EQ(json_value["apiVersion"], api_version);
+    ASSERT_EQ(json_value["method"], "SET");
+    ASSERT_EQ(json_value["payload"]["devices"][address]["model"], 13);
+    auto camera_head = json_value["payload"]["devices"][address]["cameraHead"];
+    ASSERT_EQ(camera_head["model"], 102);
+    ASSERT_EQ(camera_head["light"]["intensity"].asDouble(), 96);
+}
+
 TEST_F(MessageParserTest, it_parses_camera_head_laser_command_message)
 {
     auto parser = getMessageParser();
