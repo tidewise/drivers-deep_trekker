@@ -595,13 +595,12 @@ samples::Joints CommandAndStateMessageParser::getCameraHeadTiltMotorState(string
     validateCameraHeadStates(address);
     auto root = m_json_data["payload"]["devices"][address]["cameraHead"];
 
+    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address);
+
     samples::Joints motor_states;
     motor_states.time = Time::now();
-    auto tilt = root["tilt"]["position"].asDouble() * M_PI / 180;
-    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address, tilt);
-
     JointState joint_state = motorDiagnosticsToJointState(root["tiltMotorDiagnostics"]);
-    joint_state.position = camera_head2body_tilt;
+    joint_state.position = camera_head2body_tilt.getRad();
     motor_states.elements.push_back(joint_state);
     return motor_states;
 }
@@ -614,23 +613,23 @@ RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
 
     RigidBodyState rbs;
     rbs.time = Time::now();
-    auto tilt = root["tilt"]["position"].asDouble() * M_PI / 180;
-    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address, tilt);
+    auto camera_head2body_tilt = computeCameraHead2BodyTilt(address);
     rbs.position = Vector3d::Zero();
-    rbs.orientation = AngleAxisd(camera_head2body_tilt, Vector3d::UnitZ());
+    rbs.orientation = AngleAxisd(camera_head2body_tilt.getRad(), Vector3d::UnitZ());
     rbs.sourceFrame = "deep_trekker::body2front_camera_post";
     rbs.targetFrame = "deep_trekker::body2front_camera_pre";
     return rbs;
 }
 
-double CommandAndStateMessageParser::computeCameraHead2BodyTilt(string address,
-    double camera_head2world_tilt)
+Angle CommandAndStateMessageParser::computeCameraHead2BodyTilt(string address)
 {
     validateDepthAttitude(address);
 
-    auto body2world_pitch =
-        m_json_data["payload"]["devices"][address]["pitch"].asDouble() * M_PI / 180.0;
-    return camera_head2world_tilt - body2world_pitch;
+    auto root = m_json_data["payload"]["devices"][address];
+    auto camera_head2world_tilt =
+        root["cameraHead"]["tilt"]["position"].asDouble() * M_PI / 180;
+    auto body2world_pitch = root["pitch"].asDouble() * M_PI / 180.0;
+    return Angle::fromRad(camera_head2world_tilt - body2world_pitch);
 }
 
 JointState CommandAndStateMessageParser::motorDiagnosticsToJointState(Json::Value value)
