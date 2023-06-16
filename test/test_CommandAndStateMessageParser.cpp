@@ -459,31 +459,69 @@ TEST_F(MessageParserTest, it_returns_the_camera_head_state)
 TEST_F(MessageParserTest, it_returns_the_camera_head_tilt_state_in_rbs_form)
 {
     auto parser = getMessageParser();
-    Json::Value camera_head;
-    camera_head["payload"]["devices"]["revolution_id123"]["model"] = 13;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["light"]
-               ["intensity"] = 40;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["lasers"]
-               ["enabled"] = true;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["leak"] = false;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]["tilt"]
-               ["position"] = 90;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
-               ["tiltMotorDiagnostics"]["overcurrent"] = true;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
-               ["tiltMotorDiagnostics"]["rpm"] = 20;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
-               ["tiltMotorDiagnostics"]["pwm"] = 80;
-    camera_head["payload"]["devices"]["revolution_id123"]["cameraHead"]
-               ["tiltMotorDiagnostics"]["current"] = 60;
+    Json::Value root;
+    root["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["light"]["intensity"] =
+        40;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["lasers"]["enabled"] =
+        true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["leak"] = false;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tilt"]["position"] = 90;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["overcurrent"] = true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["rpm"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["pwm"] = 80;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["current"] = 60;
+    root["payload"]["devices"]["revolution_id123"]["depth"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["roll"] = 0.0;
+    root["payload"]["devices"]["revolution_id123"]["pitch"] = 0.0;
+    root["payload"]["devices"]["revolution_id123"]["heading"] = 90.0;
 
     Json::FastWriter writer;
     string errors;
-    parser.parseJSONMessage(writer.write(camera_head).c_str(), errors);
+    parser.parseJSONMessage(writer.write(root).c_str(), errors);
     auto actual = parser.getCameraHeadTiltMotorStateRBS("revolution_id123");
     ASSERT_EQ(0.0, getRoll(actual.orientation));
     ASSERT_EQ(0.0, getPitch(actual.orientation));
     ASSERT_NEAR(1.570, getYaw(actual.orientation), 1e-3);
+    ASSERT_EQ("deep_trekker::body2front_camera_post", actual.sourceFrame);
+    ASSERT_EQ("deep_trekker::body2front_camera_pre", actual.targetFrame);
+}
+
+TEST_F(MessageParserTest, it_returs_camera_head2body_removing_pitch_compensation_on_tilt)
+{
+    auto parser = getMessageParser();
+    Json::Value root;
+    root["payload"]["devices"]["revolution_id123"]["model"] = 13;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["light"]["intensity"] =
+        40;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["lasers"]["enabled"] =
+        true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["leak"] = false;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tilt"]["position"] = 90;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["overcurrent"] = true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["rpm"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["pwm"] = 80;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["current"] = 60;
+    root["payload"]["devices"]["revolution_id123"]["depth"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["roll"] = 90.0;
+    root["payload"]["devices"]["revolution_id123"]["pitch"] = 10.0;
+    root["payload"]["devices"]["revolution_id123"]["heading"] = 90.0;
+
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(root).c_str(), errors);
+    auto actual = parser.getCameraHeadTiltMotorStateRBS("revolution_id123");
+    ASSERT_EQ(0.0, getRoll(actual.orientation));
+    ASSERT_EQ(0.0, getPitch(actual.orientation));
+    ASSERT_NEAR(1.396, getYaw(actual.orientation), 1e-3);
     ASSERT_EQ("deep_trekker::body2front_camera_post", actual.sourceFrame);
     ASSERT_EQ("deep_trekker::body2front_camera_pre", actual.targetFrame);
 }

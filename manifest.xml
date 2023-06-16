@@ -14,5 +14,4 @@
   <depend package="jsoncpp" />
   <depend package="drivers/orogen/power_base" />
   <test_depend package="google-test" />
-  <test_depend package="google-mock" />
 </package>

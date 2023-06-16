@@ -24,8 +24,7 @@ namespace deep_trekker {
             std::string address,
             int model,
             bool auto_stabilization);
-        std::string parseMotorsDisabledRevolutionCommandMessage(
-            std::string api_version,
+        std::string parseMotorsDisabledRevolutionCommandMessage(std::string api_version,
             std::string address,
             int model,
             bool motors_disabled);
@@ -67,6 +66,7 @@ namespace deep_trekker {
             std::string battery_side);
         base::samples::Joints getCameraHeadTiltMotorState(std::string address);
         base::samples::RigidBodyState getCameraHeadTiltMotorStateRBS(std::string address);
+        base::Angle computeCameraHead2BodyTilt(std::string address);
         TiltCameraHead getCameraHeadStates(std::string address);
         std::vector<Camera> getCameras(std::string address);
 
