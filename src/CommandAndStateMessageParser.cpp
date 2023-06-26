@@ -733,3 +733,27 @@ string CommandAndStateMessageParser::getRequestForRevolutionPoseZAttitude(
     Json::FastWriter writer;
     return writer.write(request);
 }
+
+string CommandAndStateMessageParser::getRequestForRevolutionCameraHead(
+    string api_version,
+    string device_id)
+{
+    auto request = createGetRequest(api_version);
+    auto device = request["payload"]["devices"][device_id];
+    device["cameraHead"]["tilt"]["position"] = 0;
+    device["cameraHead"]["light"]["intensity"] = 0;
+    device["cameraHead"]["lasers"]["enabled"] = false;
+    device["cameraHead"]["leak"] = true;
+    device["cameraHead"]["tiltMotorDiagnostics"]["overcurrent"] = true;
+    device["cameraHead"]["tiltMotorDiagnostics"]["pwm"] = 0;
+    device["cameraHead"]["tiltMotorDiagnostics"]["rpm"] = 0;
+    device["cameraHead"]["tiltMotorDiagnostics"]["current"] = 0;
+    device["depth"] = 0;
+    device["roll"] = 0;
+    device["pitch"] = 0;
+    device["heading"] = 0;
+    request["payload"]["devices"][device_id] = device;
+
+    Json::FastWriter writer;
+    return writer.write(request);
+}
