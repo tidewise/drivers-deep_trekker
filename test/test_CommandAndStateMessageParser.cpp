@@ -201,7 +201,6 @@ TEST_F(MessageParserTest, it_parses_drive_revolution_command_with_vertical_offse
 {
     auto parser = getMessageParser();
     base::commands::LinearAngular6DCommand command;
-    double vertical_command_offset = -0.2;
     command.linear = Eigen::Vector3d(0.042, 0.42, 0.061);
     command.angular = Eigen::Vector3d(0, 0, 0.012);
     string message =
@@ -681,6 +680,37 @@ TEST_F(MessageParserTest, it_creates_a_get_request_for_the_powered_reel_states)
         false;
 
     auto message = parser.getRequestForPoweredReelStates("0.20.0", "abcd");
+
+    Json::FastWriter writer;
+    ASSERT_EQ(writer.write(expected_json), message);
+}
+
+TEST_F(MessageParserTest, it_creates_a_get_request_for_the_camera_head_states)
+{
+    auto parser = getMessageParser();
+
+    Json::Value expected_json;
+    expected_json["apiVersion"] = "0.20.0";
+    expected_json["method"] = "GET";
+    expected_json["payload"]["devices"]["abcd"]["depth"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["roll"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["pitch"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["heading"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["tilt"]["position"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["light"]["intensity"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["lasers"]["enabled"] =
+        false;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["leak"] = true;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["tiltMotorDiagnostics"]
+                 ["overcurrent"] = true;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["tiltMotorDiagnostics"]
+                 ["pwm"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["tiltMotorDiagnostics"]
+                 ["rpm"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["cameraHead"]["tiltMotorDiagnostics"]
+                 ["current"] = 0;
+
+    auto message = parser.getRequestForRevolutionCameraHead("0.20.0", "abcd");
 
     Json::FastWriter writer;
     ASSERT_EQ(writer.write(expected_json), message);
