@@ -202,7 +202,6 @@ namespace deep_trekker {
         power_base::BatteryStatus left_battery;
         power_base::BatteryStatus right_battery;
         float cpu_temperature;
-        base::commands::LinearAngular6DCommand compensated_command;
     };
 
     /**
