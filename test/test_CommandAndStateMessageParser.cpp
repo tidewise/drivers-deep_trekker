@@ -345,6 +345,11 @@ TEST_F(MessageParserTest, it_returns_the_rov_pose_with_z_and_attitude)
     ASSERT_NEAR(0.349, getRoll(actual.orientation), 0.01);
     ASSERT_NEAR(-1.5708, getYaw(actual.orientation), 0.01);
     ASSERT_NEAR(0.1745, getPitch(actual.orientation), 0.01);
+    ASSERT_NEAR(0.1, actual.cov_position(2, 2), 0.01);
+    ASSERT_NEAR(0.0003046, actual.cov_orientation(0, 0), 1e-5);
+    ASSERT_NEAR(0.0003046, actual.cov_orientation(0, 0), 1e-5);
+    ASSERT_NEAR(0.0003046, actual.cov_orientation(1, 1), 1e-5);
+    ASSERT_NEAR(0.0003046, actual.cov_orientation(2, 2), 1e-5);
 }
 
 TEST_F(MessageParserTest, it_returns_the_drive_mode)
