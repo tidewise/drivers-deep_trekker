@@ -484,9 +484,12 @@ samples::RigidBodyState CommandAndStateMessageParser::getRevolutionPoseZAttitude
     samples::RigidBodyState pose;
     pose.time = Time::now();
     pose.position.z() = -state_z;
+    pose.cov_position(2, 2) = 1e-1;
     pose.orientation = AngleAxisd(yaw, Vector3d::UnitZ()) *
                        AngleAxisd(pitch, Vector3d::UnitY()) *
                        AngleAxisd(roll, Vector3d::UnitX());
+    // 1 degree squared in radians
+    pose.cov_orientation = Matrix3d::Identity() * pow(0.0174533, 2);
 
     return pose;
 }
