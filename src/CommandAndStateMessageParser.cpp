@@ -53,16 +53,11 @@ void CommandAndStateMessageParser::validateAuxLightIntensity(string device_id)
 
 void CommandAndStateMessageParser::validateDepthAttitude(string device_id)
 {
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
-        "depth",
-        device_id);
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id], "roll", device_id);
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
-        "pitch",
-        device_id);
-    validateFieldPresent(m_json_data["payload"]["devices"][device_id],
-        "heading",
-        device_id);
+    auto root = m_json_data["payload"]["devices"][device_id];
+    validateFieldPresent(root, "depth", "payload/devices/" + device_id);
+    validateFieldPresent(root, "roll", "payload/devices/" + device_id);
+    validateFieldPresent(root, "pitch", "payload/devices/" + device_id);
+    validateFieldPresent(root, "heading", "payload/devices/" + device_id);
 }
 
 void CommandAndStateMessageParser::validateMotorStates(string device_id,
@@ -626,6 +621,7 @@ RigidBodyState CommandAndStateMessageParser::getCameraHeadTiltMotorStateRBS(
 
 Angle CommandAndStateMessageParser::computeCameraHead2BodyTilt(string address)
 {
+    validateCameraHeadStates(address);
     validateDepthAttitude(address);
 
     auto root = m_json_data["payload"]["devices"][address];
@@ -759,4 +755,8 @@ string CommandAndStateMessageParser::getRequestForRevolutionCameraHead(
 
     Json::FastWriter writer;
     return writer.write(request);
+}
+
+Json::Value CommandAndStateMessageParser::getJson() const {
+    return m_json_data;
 }

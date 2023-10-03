@@ -720,3 +720,43 @@ TEST_F(MessageParserTest, it_creates_a_get_request_for_the_camera_head_states)
     Json::FastWriter writer;
     ASSERT_EQ(writer.write(expected_json), message);
 }
+
+TEST_F(MessageParserTest,
+    it_validates_camera_head_states_when_computing_camera_head2body_tilt)
+{
+    auto parser = getMessageParser();
+    Json::Value root;
+    root["payload"]["devices"]["revolution_id123"]["model"] = 13;
+
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["lasers"]["enabled"] =
+        true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["leak"] = false;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tilt"]["position"] = 90;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["overcurrent"] = true;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["rpm"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["pwm"] = 80;
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["tiltMotorDiagnostics"]
+        ["current"] = 60;
+    root["payload"]["devices"]["revolution_id123"]["depth"] = 20;
+    root["payload"]["devices"]["revolution_id123"]["roll"] = 0.0;
+    root["payload"]["devices"]["revolution_id123"]["pitch"] = 0.0;
+    root["payload"]["devices"]["revolution_id123"]["heading"] = 90.0;
+
+    Json::FastWriter writer;
+    string errors;
+    parser.parseJSONMessage(writer.write(root).c_str(), errors);
+    base::Angle camera_head_tilt;
+    bool breaks_if_incomplete_JSON = false;
+
+    ASSERT_ANY_THROW(parser.computeCameraHead2BodyTilt("revolution_id123"));
+
+    root["payload"]["devices"]["revolution_id123"]["cameraHead"]["light"]["intensity"] =
+        40;
+    parser.parseJSONMessage(writer.write(root).c_str(), errors);
+
+    camera_head_tilt = parser.computeCameraHead2BodyTilt("revolution_id123");
+    ASSERT_EQ(camera_head_tilt, base::Angle::fromDeg(90));
+}
