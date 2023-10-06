@@ -681,8 +681,12 @@ TEST_F(MessageParserTest, it_creates_a_get_request_for_the_powered_reel_states)
     expected_json["payload"]["devices"]["abcd"]["eStop"] = false;
     expected_json["payload"]["devices"]["abcd"]["motor1Diagnostics"]["overcurrent"] =
         false;
+    expected_json["payload"]["devices"]["abcd"]["motor1Diagnostics"]["pwm"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["motor1Diagnostics"]["current"] = 0;
     expected_json["payload"]["devices"]["abcd"]["motor2Diagnostics"]["overcurrent"] =
         false;
+    expected_json["payload"]["devices"]["abcd"]["motor2Diagnostics"]["pwm"] = 0;
+    expected_json["payload"]["devices"]["abcd"]["motor2Diagnostics"]["current"] = 0;
 
     auto message = parser.getRequestForPoweredReelStates("0.20.0", "abcd");
 

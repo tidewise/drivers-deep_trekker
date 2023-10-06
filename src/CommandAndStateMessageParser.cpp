@@ -710,7 +710,11 @@ string CommandAndStateMessageParser::getRequestForPoweredReelStates(string api_v
     device["acConnected"] = false;
     device["eStop"] = false;
     device["motor1Diagnostics"]["overcurrent"] = false;
+    device["motor1Diagnostics"]["current"] = 0;
+    device["motor1Diagnostics"]["pwm"] = 0;
     device["motor2Diagnostics"]["overcurrent"] = false;
+    device["motor2Diagnostics"]["current"] = 0;
+    device["motor2Diagnostics"]["pwm"] = 0;
     request["payload"]["devices"][device_id] = device;
 
     Json::FastWriter writer;
