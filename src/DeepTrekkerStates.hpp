@@ -1,11 +1,11 @@
 #ifndef _DEEP_TREKKER_STATES_HPP_
 #define _DEEP_TREKKER_STATES_HPP_
 
+#include "base/commands/LinearAngular6DCommand.hpp"
 #include <base/Time.hpp>
 #include <base/samples/Joints.hpp>
 #include <base/samples/RigidBodyState.hpp>
 #include <power_base/BatteryStatus.hpp>
-#include "base/commands/LinearAngular6DCommand.hpp"
 
 namespace deep_trekker {
 

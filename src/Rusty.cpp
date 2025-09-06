@@ -59,8 +59,7 @@ void Rusty::open()
             return;
         }
 
-        if (!m_client_ping_timeout.isNull())
-        {
+        if (!m_client_ping_timeout.isNull()) {
             unique_lock lock(m_poll_lock);
             m_client_ping_deadline = Time::now() + m_client_ping_timeout;
         }

@@ -737,8 +737,7 @@ string CommandAndStateMessageParser::getRequestForRevolutionPoseZAttitude(
     return writer.write(request);
 }
 
-string CommandAndStateMessageParser::getRequestForRevolutionCameraHead(
-    string api_version,
+string CommandAndStateMessageParser::getRequestForRevolutionCameraHead(string api_version,
     string device_id)
 {
     auto request = createGetRequest(api_version);
@@ -761,6 +760,7 @@ string CommandAndStateMessageParser::getRequestForRevolutionCameraHead(
     return writer.write(request);
 }
 
-Json::Value CommandAndStateMessageParser::getJson() const {
+Json::Value CommandAndStateMessageParser::getJson() const
+{
     return m_json_data;
 }
