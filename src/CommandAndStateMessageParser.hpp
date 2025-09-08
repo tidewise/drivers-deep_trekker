@@ -134,7 +134,7 @@ namespace deep_trekker {
         std::string getRequestForRevolutionPoseZAttitude(std::string api_version,
             std::string device_id);
         std::string getRequestForRevolutionCameraHead(std::string api_version,
-                std::string device_id);
+            std::string device_id);
 
         Json::Value getJson() const;
 

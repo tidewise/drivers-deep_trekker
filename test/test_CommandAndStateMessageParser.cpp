@@ -753,7 +753,6 @@ TEST_F(MessageParserTest,
     string errors;
     parser.parseJSONMessage(writer.write(root).c_str(), errors);
     base::Angle camera_head_tilt;
-    bool breaks_if_incomplete_JSON = false;
 
     ASSERT_ANY_THROW(parser.computeCameraHead2BodyTilt("revolution_id123"));
 

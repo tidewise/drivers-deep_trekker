@@ -14,9 +14,9 @@ namespace deep_trekker {
         void publishICECandidate(std::string const& candidate,
             std::string const& mid) override;
         /** Send a ping request */
-        void ping();
+        void ping() override;
         /** Send a pong reply */
-        void pong();
+        void pong() override;
 
         static std::shared_ptr<NullWebRTCNegotiation> instance();
     };
