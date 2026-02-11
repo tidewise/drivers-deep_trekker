@@ -1,5 +1,6 @@
 #include <base-logging/Logging.hpp>
 #include <deep_trekker/Rusty.hpp>
+#include <thread>
 
 using namespace deep_trekker;
 using namespace rtc;
